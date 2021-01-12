@@ -34,7 +34,7 @@ N_iter=10**4
 
 #%% Loading the data || NEEDS TO BE FOR THE RIGHT N0 WITH THE RIGHT PATH ||
 
-file=open("mList2P8good.txt","r") #fixing the structure to make it right.
+file=open("/Users/CMoslonka/Desktop/Numerical_computations/mList2P8good.txt","r") #fixing the structure to make it right.
 data_string=file.read()
 #We can probably use np.loadtext instead 
 data = ast.literal_eval(data_string)
@@ -264,3 +264,5 @@ plt.show()
 # arises from coupling. Maybe this only works for N0=2^8, who knows.
 
 #%%
+
+#Hey, i'm making changes to my file !
