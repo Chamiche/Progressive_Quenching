@@ -119,13 +119,6 @@ plt.savefig('hist_T0_16_N0_10p8.pdf')
 plt.show()
 
 
-#%% Completement hors sujet, evolution de meq
-
-plt.plot(meq[N0-1][1::2])
-plt.plot(meq[N0-50][0::2])
-plt.plot(meq[N0-100][0::2])
-plt.plot(meq[N0-150][0::2])
-plt.plot(meq[N0-200][0::2])
 
 #%% Testing for randomly picked spins
 #random.seed(100)

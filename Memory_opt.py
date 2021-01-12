@@ -222,52 +222,7 @@ for M in range(T0):  # We stop
 u=np.ones((T0,2*T0+1))
 v=mean
 
-#%% Making tries for a meq function
 
-x=np.arange(-T0,T0+1)
-
-plt.plot(x,meq[N0-2][0::2])
-plt.plot(x,meq[N0-50][0::2])
-plt.plot(x,meq[N0-100][0::2])
-plt.plot(x,meq[N0-150][0::2])
-plt.plot(x,meq[N0-200][0::2]) #note it's probably not a tanh when N is small
-
-
-#plt.plot(x,np.tanh(x/T0))
-
-
-#%%
-def y(t,i):
-    return np.tanh(t*(N0/(N0-i))/T0)
-#%%    
-
-#plt.plot(x,y(x,8.31111))
-
-plt.plot(x,meq[N0-2][0::2]-y(x,8.31111))
-
-#%%
-
-plt.plot(y(x,43.484)[1:N0-1]-meq[N0-2][2:2*N0-2:2])
-
-
-#%%
-
-for i in np.linspace(43.4, 43.5, 100) :
-    print(str(i), "and max is : ", np.max(y(x,i)[1:N0-1]-meq[N0-2][2:2*N0-2:2])) # note it is 8.31111 #and for 1.2 its 43.484 (for N0-1) i.e the last meq
-    
-    
-    
-#%% Let's make a try for a random meq 
-
-# We want to generate an array meq[N] with zeros between 0 and (N0±N). len of meq[N] is 513 = 2*N0+1
-
-meqtest=np.zeros((N0,2*N0+1))
-def test(t,i):
-    return np.tanh(t*i/T0) #This can be replaced by any function ## Before it was *N0/(N0-i)
-
-for N in range(N0): 
-    for T in range(-N,N+1,2):
-        meqtest[N][N0+T]=test((T/2),7)
         
 #%% Transfer matrix
 
