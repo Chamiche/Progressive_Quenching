@@ -264,5 +264,3 @@ plt.show()
 # arises from coupling. Maybe this only works for N0=2^8, who knows.
 
 #%%
-
-#Hey, i'm making changes to my file !
