@@ -825,3 +825,6 @@ ax.plot(x,np.tanh(x))
 plt.ioff()
 plt.plot([1.6, 2.7])
 
+#%% Bonjour chouki chatoooon
+print("couki")
+
