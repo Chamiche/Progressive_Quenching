@@ -27,7 +27,7 @@ N0=2**L #System size
 
 T0=2**7
 
-N_iter=10**4
+N_iter=10**6
 
 #%% Loading the data || NEEDS TO BE FOR THE RIGHT N0 WITH THE RIGHT PATH ||
 
@@ -165,7 +165,7 @@ print(end - start)
 
 #M_list_rand_norm=np.array(M_list_rand)/T0
 
-# Making some stats
+#%% Making some stats
 
 plt.hist(M_list_rand,range=(-T0,T0+1),bins=(2*T0),density=True)
 plt.xlabel('Normalized Magnetisation $m=M/T_0$')
@@ -218,7 +218,7 @@ plt.legend()
 props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
 
 textstr = '\n'.join((
-    r'$N_{iter}=10^6$ points',
+    r'$N_{iter}=10^4$ points',
     r'$T_0= %i$' %T0))
 
 # place a text box in upper left in axes coords
@@ -227,7 +227,7 @@ plt.text(1500,1000, textstr, fontsize=14, bbox=props)
 plt.xlabel('$\\tau $')
 plt.ylabel('$<M(t)M(t+\\tau )>_t$')
 plt.title('Correlation functions of the two forgetting processes')
-plt.savefig('Good_correlations.pdf')
+#plt.savefig('Good_correlations.pdf')
 plt.show()
 
 
