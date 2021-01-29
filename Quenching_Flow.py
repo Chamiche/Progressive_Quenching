@@ -452,6 +452,8 @@ for k in range(-T0,T0+1):
 plt.plot(Values_M[::2],P[::2])
 plt.xlabel('Magnetisation Value')
 plt.ylabel('Probability')
+plt.grid()
+plt.savefig('Proba_density.pdf')
 plt.show()
 
 #%% Alt test
@@ -542,6 +544,8 @@ file=open("Eigenvectors_Mathematica_ready.txt","r") #fixing the structure to mak
 eigenvectors_string=file.read()
 #We can probably use np.loadtext instead 
 EVectors = ast.literal_eval(eigenvectors_string)
+EVectors = -np.array(EVectors)
+
 
 #%% Ploting the Spectrum
 
@@ -555,7 +559,7 @@ props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
 textstr = '$T_0= %i$' %T0
 
 # place a text box in upper left in axes coords
-plt.text(80,0.8, textstr, fontsize=14, bbox=props)
+plt.text(textstr, fontsize=14, bbox=props)
 
 plt.title('Spectrum of the Transfer Matrix')
 #plt.savefig('Spectrum_TM.pdf')
@@ -577,10 +581,10 @@ props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
 textstr = '\n'.join(( '$T_0= %i$' %T0 , r'$ \lambda = 1 $'))
 
 # place a text box in upper left in axes coords
-plt.text(80,0.10, textstr, fontsize=14, bbox=props)
+#plt.text(textstr, fontsize=14, bbox=props, loc="upper left")
 
 plt.title('Eigenvector associated with the $ \lambda = 1 $ eigenvalue')
-#plt.savefig('First_eigenvector.pdf')
+#lt.savefig('First_eigenvector.pdf')
 plt.show()
 
 #%% Comparing the others 
