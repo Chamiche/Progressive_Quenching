@@ -23,9 +23,10 @@ import time
 #%% Parameters 
 
 L=8
-N0=2**L #System size
+N0=2**L #System size 
 
-T0=2**7
+
+T0=N0//2
 
 N_iter=10**6
 
@@ -59,6 +60,21 @@ for T in range(N0):
     for i in range(len(data[T])):
         meq[T][N0 + data[T][i][1]]=data[T][i][2]
         
+#%%
+
+N0=2**10
+T0=N0//2
+file=open("mList2P10.txt","r") #fixing the structure to make it right.
+data_string=file.read()
+#We can probably use np.loadtext instead 
+data = ast.literal_eval(data_string)
+
+
+meq=np.zeros((N0,2*N0+1))
+for T in range(N0):
+    for i in range(len(data[T])):
+        meq[T][N0 + data[T][i][1]]=data[T][i][2]
+
 
 
 #%% Normal PQ until T0
@@ -406,6 +422,7 @@ list_Pf=[]
 #list_sensi=[] 
 P0=np.zeros(2*T0+1)
 P0[T0]=1 #Origin of the probabilities
+#P0[T0+2]=1 #Origin of the probabilities
 
 P=P0   
 list_Pf.append(P)
@@ -420,6 +437,22 @@ for M in range(T0):  # We stop
     P=np.dot(K,P) #the order is good.
     list_Pf.append(P)
     
+
+#%% Compute directly the total transfer matrix
+
+for M in range(T0):  # We stop 
+    K=np.zeros((2*T0+1,2*T0+1))    
+    for i in range(M+1): #len(data(M)) = M+1
+        #To be clear = data[T][M] = a list that contains : [T,M,meq(T,M)]
+        K[T0+data[M][i][1]+1][T0+data[M][i][1]]=(1 + data[M][i][2])/2  #ith line and i+1 column 
+        K[T0+data[M][i][1]-1][T0+data[M][i][1]]=(1 - data[M][i][2])/2
+    if(M==0):
+        A=K #We stock the first value of the TM
+    elif(M==1):
+        S=np.dot(K,A) #We make the first product
+    else  :
+        S=np.dot(K,S)
+
     
 #%%Making the matrix for the random pick (easier to write)
 
@@ -439,6 +472,21 @@ for T in range (N_iter) :
 
 #P is the final probability
 
+#%% Regular plotting from a given distribution
+
+P0=np.zeros(2*T0+1)
+P0[T0-50]=0.5
+P0[-(T0-50+1)]=0.5
+N_iter=3000
+W=np.dot(K,S)
+for T in range (N_iter) :
+    P0=np.dot(W,P0)
+    if(T%300==0) :
+        plt.plot(P0[0::2], label='$T= %i$' %T)
+        plt.title('$S= %1.3f $' %np.sum(P0))
+        plt.legend()
+        plt.show()
+
 
 #%% Values_M
 
@@ -449,11 +497,26 @@ for k in range(-T0,T0+1):
 
 #%% Plots
 
-plt.plot(Values_M[::2],P[::2])
+plt.plot(Values_M[::2],P[::2],'-b',label='Stationnary')
+plt.plot(Values_M[0::2],list_Pf[-1][0::2],'-r', label='ProgressiveQuenching')
 plt.xlabel('Magnetisation Value')
 plt.ylabel('Probability')
 plt.grid()
-plt.savefig('Proba_density.pdf')
+plt.legend()
+plt.title('Comparison between the 2 methods')
+#plt.savefig('Proba_density.pdf')
+plt.show()
+
+#%% Assymetry (Please make meq = 0)
+
+P=np.array(P)
+list_Pf=np.array(list_Pf)
+
+plt.plot(Values_M[0::2],list_Pf[-1][0::2] - P[::2],'.b')
+plt.xlabel('Magnetisation Value')
+plt.ylabel('Probability difference')
+plt.title('Difference between the 2 PDF')
+plt.grid()
 plt.show()
 
 #%% Alt test
@@ -501,7 +564,7 @@ for i in range(T0+1):
         
 #%% Writting Wprime in a file
  
-f=open("Reduced_transfer_matrix_j12.txt",'w')
+f=open("Reduced_transfer_matrix_2p10.txt",'w')
 f.write('{')
 for i in range(T0+1):
     f.write('{')
@@ -829,6 +892,41 @@ ax.plot(x,np.tanh(x))
 plt.ioff()
 plt.plot([1.6, 2.7])
 
-#%% Bonjour chouki chatoooon
-print("couki")
+#%% Asymetry study !!
+
+
+for i in range(0,N0,2):
+    data[i][i//2][2]= 0#random.gauss(0,0.001) # This sets all randomness to 0 in 
+    # Numerical estimation of meq with M ==0
+    
+    # Result is no more asymetry
+#%% recompute 
+
+runcell('Computing the transfer matrix', '/Users/CMoslonka/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
+
+#%%
+    
+a=np.zeros(T0//2)
+
+for i in range(len(a)):
+    a[i]=P[0::2][i]-P[0::2][-(i+1)] #The "asymmetry function"
+
+plt.plot(a,'.b') 
+
+#%%As a comparison we can plot the same asymmetry function for the Eigenvalue
+
+b=np.zeros(T0//2)
+
+for i in range(len(b)):
+    b[i]=EVectors[0][i]-EVectors[0][-(i+1)]
+    
+plt.plot(b,'.r')
+
+#%%Now we can compare the 2 distributions : 
+
+plt.plot(EVectors[0]-P[0::2]) #Now we see that it's probably random noise (and it's symmetric) that comes from computation (I guess ?)
+
+#%%
+
+
 
