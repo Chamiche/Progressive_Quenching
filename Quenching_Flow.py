@@ -26,7 +26,7 @@ L=8
 N0=2**L #System size 
 
 
-T0=N0//2
+T0=8
 
 N_iter=10**6
 
@@ -465,8 +465,10 @@ for i in range (-T0,T0+1):
 
 #%% Computing some stuff from the proba distribution P
 W=np.dot(K,S)
+P0=np.zeros(2*T0+1)
+P0[T0-1]=1
 for T in range (N_iter) :
-    P=np.dot(W,P)
+    P0=np.dot(W,P0)
     #Pprime=np.dot(S,P) #Removing one spin
     #P=np.dot(K,Pprime) #The last matrix K in memory is the one for T0-1 quenched spins
 
@@ -475,8 +477,8 @@ for T in range (N_iter) :
 #%% Regular plotting from a given distribution
 
 P0=np.zeros(2*T0+1)
-P0[T0-50]=0.5
-P0[-(T0-50+1)]=0.5
+P0[T0]=1
+#P0[-(T0-50+1)]=0.5
 N_iter=3000
 W=np.dot(K,S)
 for T in range (N_iter) :
