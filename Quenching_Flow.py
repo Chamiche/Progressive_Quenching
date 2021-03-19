@@ -930,5 +930,37 @@ plt.plot(EVectors[0]-P[0::2]) #Now we see that it's probably random noise (and i
 
 #%%
 
+#%% Trying our formula for the Stationnary distribution 
+
+
+Pst_test=np.zeros(T0+1)
+for i in range((T0+1)):
+    prod1=1
+    prod2=1
+    for k in range(i):
+        prod1 *= (1+data[T0][k][2])
+        prod2 *= (1-data[T0][k][2])
+    Pst_test[i] = math.comb(T0+1,i)* prod1/prod2
+
+#Pst_test*=1/np.sum(Pst_test)  
+
+
+#%% 
+
+plt.plot(Pst_test)
+
+#%% Testing what random values give
+
+Pst_test2=np.zeros(T0+1)
+for i in range((T0+1)):
+    prod1=1
+    prod2=1
+    for k in range(i):
+        a=random.random()
+        prod1 *= (1+a)
+        prod2 *= (1-a)
+    Pst_test2[i] = math.comb(T0+1,i)* prod1/prod2
+
+Pst_test2*=1/np.sum(Pst_test2)  
 
 
