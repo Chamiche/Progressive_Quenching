@@ -26,9 +26,9 @@ L=8
 N0=2**L #System size 
 
 
-T0=8
+T0=N0
 
-N_iter=10**6
+N_iter=10**5
 
 #%% Loading the data || NEEDS TO BE FOR THE RIGHT N0 WITH THE RIGHT PATH ||
 
@@ -466,7 +466,7 @@ for i in range (-T0,T0+1):
 #%% Computing some stuff from the proba distribution P
 W=np.dot(K,S)
 P0=np.zeros(2*T0+1)
-P0[T0-1]=1
+P0[T0]=1
 for T in range (N_iter) :
     P0=np.dot(W,P0)
     #Pprime=np.dot(S,P) #Removing one spin
@@ -566,7 +566,7 @@ for i in range(T0+1):
         
 #%% Writting Wprime in a file
  
-f=open("Reduced_transfer_matrix_2p10.txt",'w')
+f=open("Reduced_transfer_matrix_2p10_682.txt",'w')
 f.write('{')
 for i in range(T0+1):
     f.write('{')
@@ -788,7 +788,7 @@ EVectors_transposed = ast.literal_eval(eigenvectors_string)
 
 #%% ON VÉRIFIE L'ORTHOGONALITÉ DES VECTEURS PROPRES
 
-np.dot(EVectors[3],EVectors_transposed[5])
+print(np.dot(EVectors[],EVectors_transposed[5]))
 
 
 
@@ -854,13 +854,15 @@ plt.show()
 
 
 fig, ax = plt.subplots() # initialise la figure
-line, = ax.plot(Values_M,list_Pf[0]) 
+val=np.arange(-N0,N0+1,2,dtype=float)/N0
+line, = ax.plot(val,list_Pf[1][0::2]*(1/np.max(list_Pf[i]))) 
 #plt.xlim(-1,1)
+plt.ylim((0,1.1))
 def init():  # only required for blitting to give a clean slate.
     line.set_ydata([np.nan] * N0)
     
 def animate(i):
-    line.set_data(Values_M,list_Pf[i]*(1/np.max(list_Pf[i]))) 
+    line.set_data(np.arange(-i,i+1,2,dtype=float)/i,list_Pf[i][N0-i:N0+i+1:2]*(1/np.max(list_Pf[i]))) 
     line.set_label('$T_0$ = {}'.format(i))
     
     #ax.set_xlabel('Total magnetisation $M_{N_0}$',size=12)
@@ -875,10 +877,10 @@ def animate(i):
     ax.legend(loc = 'upper right')
     return line,
 
-steps=np.arange(1,T0)
+steps=np.arange(1,N0)
 
 ani=animation.FuncAnimation(fig,animate,steps,interval=100)
-ani.save("test_anim_proba2P8.mp4")
+ani.save("anim_proba2P8.mp4")
 plt.show()
 
 
@@ -934,15 +936,17 @@ plt.plot(EVectors[0]-P[0::2]) #Now we see that it's probably random noise (and i
 
 
 Pst_test=np.zeros(T0+1)
-for i in range((T0+1)):
+for i in range((T0+1)): #the i's are basically the values of M
     prod1=1
     prod2=1
-    for k in range(i):
-        prod1 *= (1+data[T0][k][2])
-        prod2 *= (1-data[T0][k][2])
-    Pst_test[i] = math.comb(T0+1,i)* prod1/prod2
+    for k in range(i-1):#k  must take into account up to 
+        prod1 *= (1+data[T0-3][k][2])
+        prod2 *= (1-data[T0-3][k][2])
+    Pst_test[i] = math.comb(T0,i)* prod1/prod2
 
-#Pst_test*=1/np.sum(Pst_test)  
+Pst_test*=1/np.sum(Pst_test)  
+
+
 
 
 #%% 
@@ -962,5 +966,97 @@ for i in range((T0+1)):
     Pst_test2[i] = math.comb(T0+1,i)* prod1/prod2
 
 Pst_test2*=1/np.sum(Pst_test2)  
+
+
+#%% Showing the predicted values
+
+T1=N0-1
+P_pred=np.zeros(T1+1)
+M_values_pred=np.zeros(T1+1)
+
+for i in range(T1+1):
+    M_values_pred[i]=(2*i-T1)+(N0-T1)*data[T1][i][2]
+    
+P_pred[0]=2*list_Pf[T1][N0-T1:N0+T1+1:2][0]/(M_values_pred[1]-M_values_pred[0])
+
+for j in range(1,T1):
+    P_pred[j]=2*list_Pf[T1][N0-T1:N0+T1+1:2][j]/(M_values_pred[j+1]-M_values_pred[j-1])
+
+P_pred[T1]=2*list_Pf[T1][N0-T1:N0+T1+1:2][T1]/(M_values_pred[-1]-M_values_pred[-2])
+
+P_pred*=2
+
+#%% Making a nice plot for the presentation
+
+list_P_pred=[]
+list_M_values=[]
+for T1 in [8,16,32,64,128] :
+    P_pred=np.zeros(T1+1)
+    M_values_pred=np.zeros(T1+1)
+    
+    for i in range(T1+1):
+        M_values_pred[i]=(2*i-T1)+(N0-T1)*data[T1][i][2]
+        
+    P_pred[0]=2*list_Pf[T1][N0-T1:N0+T1+1:2][0]/(M_values_pred[1]-M_values_pred[0])
+    
+    for j in range(1,T1):
+        P_pred[j]=2*list_Pf[T1][N0-T1:N0+T1+1:2][j]/(M_values_pred[j+1]-M_values_pred[j-1])
+    
+    P_pred[T1]=2*list_Pf[T1][N0-T1:N0+T1+1:2][T1]/(M_values_pred[-1]-M_values_pred[-2])
+    
+    P_pred*=2
+    list_P_pred.append(P_pred)
+    list_M_values.append(M_values_pred)
+
+#%% Generating the plot
+
+
+plt.plot(list_M_values[0],list_P_pred[0],'.--',label='$T_i=8$',)
+plt.plot(list_M_values[1],list_P_pred[1],'.--',label='$T_i=16$')
+plt.plot(list_M_values[2],list_P_pred[2],'.',label='$T_i=32$')
+plt.plot(list_M_values[3],list_P_pred[3],'.',label='$T_i=64$')
+plt.plot(list_M_values[4],list_P_pred[4],'.',label='$T_i=128$')
+
+plt.plot(Values_M,list_Pf[-1][0::2],'b-',label = 'True Value')
+
+plt.xlabel('Magnetisation value')
+plt.ylabel('Probability density')
+
+plt.title('Inference of the probability distribution for different points $T_i$')
+
+plt.legend()
+
+plt.savefig('Inference_2P8.pdf')
+
+plt.show()
+
+#%% Just showing the shape of the T0=16, just to show how our inference is cool
+val16=np.arange(-16,17,2)
+plt.plot(val16,list_Pf[16][N0-16:N0+16+1:2],'r.-')
+plt.xlabel('Magnetisation value')
+plt.ylabel('Probability density')
+plt.title('Magnetisation distribution at $T_0=16$')
+plt.savefig('distribT016.pdf')
+plt.show()
+
+#%% Change of shape figure
+
+for T0 in [16,32,64,128,256] :
+    val=np.arange(-T0,T0+1,2,dtype=float)
+    val/=T0
+    plt.plot(val,list_Pf[T0][N0-T0:N0+T0+1:2]/np.max(list_Pf[T0][N0-T0:N0+T0+1:2]),'.--',label='$N_0=$ %i' %T0)
+plt.legend()    
+plt.xlabel('Normalized magnetisation $M/N_0$')
+plt.ylabel('Scaled probability distribution')
+plt.title('Change of shape with system size $N_0$')
+plt.savefig('Shape_change.pdf')
+plt.show()
+
+
+
+#%%
+
+
+
 
 
