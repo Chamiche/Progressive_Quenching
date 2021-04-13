@@ -1172,27 +1172,70 @@ for T0 in range(1,N0):
 # there are some problems bc we sometime get complex values, you have to check it manually
 # Just redoing with the wrong T0 solves the pbm
 
-#%% plotting 
+ #%% plotting 
+x=np.arange(2,N0+1)
+y=(-1/(np.log(list_lambda)))
 
-
-plt.loglog(np.arange(3,257),(-1/(np.log(list_lambda[1:]))),'b.')
+plt.loglog(x,y,'b.')
+plt.loglog(x,x**2,'r-')
 plt.grid()
 plt.title('Relaxation time vs system size')
 plt.xlabel('Value of $T_0$') 
 plt.ylabel('Value of $\\tau $')
 props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
 
-textstr = '$N_0= 256$'
+textstr = '$N_0= %i$'%N0
 
 # place a text box in upper left in axes coords
 plt.text(3,1e3, textstr, fontsize=14, bbox=props)
-#plt.savefig('Relax_vs_size.pdf')
+#plt.savefig('Relax_vs_size_2p10.pdf')
+plt.show()
+#%%Asymptote
+
+logx=np.log(x)
+logy=np.log(y)
+
+plt.plot(logx,logy,'b.',label='data')
+plt.plot(logx, 2*logx - (2*logx[-1]-logy[-1]),'r',label='$y=2x$')
+plt.grid()
+
+plt.xlabel('Value of log($T_0$)') 
+plt.ylabel('Value of log($\\tau $)')
+plt.legend()
+plt.title('Asymptotic study : $\\tau \\propto T_0^2$')
+
+props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+
+textstr = '$N_0= %i$'%N0
+
+# place a text box in upper left in axes coords
+plt.text(4,0, textstr, fontsize=14, bbox=props)
+
+#plt.savefig('Asymptotic2p8.pdf')
 plt.show()
 
 
+
+#%% Writting in a file, again
+
+x=np.arange(2,N0+1)
+
+f=open("list_data_2p10.txt",'w')
+for i in range(N0-1):
+    plip=str(np.log(x[i]))
+    plop=str(np.log(-1/np.log(list_lambda[i])))
+    f.write('{')
+    f.write(plip)
+    f.write(',')
+    f.write(plop)
+    f.write('}')
+    if i!=N0-2 :
+        f.write(',')
+f.close()
+
 #%%
 
-test=np.real(eigs(Wprime,k=1)[1])
+test=np.real(eigs(Wprime,k=1,which='LM')[1])
 
 
 #%% 
