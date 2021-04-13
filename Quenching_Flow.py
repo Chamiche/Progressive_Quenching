@@ -60,7 +60,7 @@ for T in range(N0):
     for i in range(len(data[T])):
         meq[T][N0 + data[T][i][1]]=data[T][i][2]
         
-#%%
+#%% For N0=2p10=1024
 
 N0=2**10
 T0=N0//2
@@ -75,6 +75,40 @@ for T in range(N0):
     for i in range(len(data[T])):
         meq[T][N0 + data[T][i][1]]=data[T][i][2]
 
+#%% Another series of data 2p4
+
+N0=16
+T0=N0//2
+
+file=open("meq2P4.txt","r") #fixing the structure to make it right.
+data_string=file.read()
+#We can probably use np.loadtext instead 
+data = ast.literal_eval(data_string)
+
+
+meq=np.zeros((N0,2*N0+1))
+for T in range(N0):
+    for i in range(len(data[T])):
+        meq[T][N0 + data[T][i][1]]=data[T][i][2]
+        
+        
+#%% Same for 2p5
+
+
+N0=2**5
+T0=N0//2
+
+file=open("meq2P5.txt","r") #fixing the structure to make it right.
+data_string=file.read()
+#We can probably use np.loadtext instead 
+data = ast.literal_eval(data_string)
+
+
+meq=np.zeros((N0,2*N0+1))
+for T in range(N0):
+    for i in range(len(data[T])):
+        meq[T][N0 + data[T][i][1]]=data[T][i][2]
+        
 
 
 #%% Normal PQ until T0
@@ -1209,9 +1243,9 @@ props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
 textstr = '$N_0= %i$'%N0
 
 # place a text box in upper left in axes coords
-plt.text(4,0, textstr, fontsize=14, bbox=props)
+plt.text(2,0, textstr, fontsize=14, bbox=props)
 
-#plt.savefig('Asymptotic2p8.pdf')
+plt.savefig('Asymptotic2p5.pdf')
 plt.show()
 
 
@@ -1238,11 +1272,72 @@ f.close()
 test=np.real(eigs(Wprime,k=1,which='LM')[1])
 
 
-#%% 
-
-spec=np.real(eigs(Wprime,k=2)[1])
+#%%  Adjoint problem
 
 
+T0=128
+
+K=np.zeros((2*T0+1,2*T0+1))
+for M in range(T0):  # We stop 
+    for i in range(M+1): #len(data(M)) = M+1
+        #To be clear = data[T][M] = a list that contains : [T,M,meq(T,M)]
+        K[T0+data[M][i][1]+1][T0+data[M][i][1]]=(1 + data[M][i][2])/2  #ith line and i+1 column 
+        K[T0+data[M][i][1]-1][T0+data[M][i][1]]=(1 - data[M][i][2])/2
 
 
 
+S=np.zeros((2*T0+1,2*T0+1))
+for i in range (-T0,T0+1):
+    if i!=T0 : #Otherwise, bad index in the edges of the matrix
+        S[T0+i][T0+i+1]=(i+1+T0)/(2*T0)
+    if i!=-T0 :
+        S[T0+i][T0+i-1]=1-((i-1+T0)/(2*T0)) #to be checked
+
+W=np.dot(K,S)
+Wprime=np.zeros((T0+1,T0+1))
+
+for i in range(T0+1):
+    for j in range(T0+1):
+        Wprime[i][j]=W[2*i][2*j]
+
+PstT0=np.real(eigs(Wprime,k=1,which='LM')[1])
+PstT0*=1/np.sum(PstT0)
+
+T0+=1
+
+
+K=np.zeros((2*T0+1,2*T0+1))
+for M in range(T0):  # We stop 
+    for i in range(M+1): #len(data(M)) = M+1
+        #To be clear = data[T][M] = a list that contains : [T,M,meq(T,M)]
+        K[T0+data[M][i][1]+1][T0+data[M][i][1]]=(1 + data[M][i][2])/2  #ith line and i+1 column 
+        K[T0+data[M][i][1]-1][T0+data[M][i][1]]=(1 - data[M][i][2])/2
+
+
+
+S=np.zeros((2*T0+1,2*T0+1))
+for i in range (-T0,T0+1):
+    if i!=T0 : #Otherwise, bad index in the edges of the matrix
+        S[T0+i][T0+i+1]=(i+1+T0)/(2*T0)
+    if i!=-T0 :
+        S[T0+i][T0+i-1]=1-((i-1+T0)/(2*T0)) #to be checked
+
+W=np.dot(K,S)
+Wprime=np.zeros((T0+1,T0+1))
+
+for i in range(T0+1):
+    for j in range(T0+1):
+        Wprime[i][j]=W[2*i][2*j]
+
+
+PstT0_1=np.real(eigs(Wprime,k=1,which='LM')[1])
+PstT0_1*=1/np.sum(PstT0_1)
+
+T0-=1
+PstT0l=np.zeros(2*T0+1)
+for i in range(T0+1):
+    PstT0l[2*i]=PstT0[i]
+
+Pst_prime=np.dot(K,PstT0l)
+
+plt.plot(Pst_prime[1::2]-PstT0_1)
