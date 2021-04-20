@@ -18,6 +18,7 @@ plt.rcParams['animation.ffmpeg_path'] = '/Users/CMoslonka/ffmpeg'
 
 import time
 
+from scipy.sparse.linalg import eigs
 
 
 #%% Parameters 
@@ -38,6 +39,11 @@ data_string=file.read()
 data = ast.literal_eval(data_string)
 
 
+for i in range(0,N0,2):
+    data[i][i//2][2]= 0#random.gauss(0,0.001) # This sets all randomness to 0 in 
+    # Numerical estimation of meq with M ==0
+    
+
 meq=np.zeros((N0,2*N0+1))
 for T in range(N0):
     for i in range(len(data[T])):
@@ -55,6 +61,10 @@ data_string=file.read()
 data = ast.literal_eval(data_string)
 
 
+for i in range(0,N0,2):
+    data[i][i//2][2]= 0#random.gauss(0,0.001) # This sets all randomness to 0 in 
+    # Numerical estimation of meq with M ==0
+
 meq=np.zeros((N0,2*N0+1))
 for T in range(N0):
     for i in range(len(data[T])):
@@ -70,6 +80,10 @@ data_string=file.read()
 data = ast.literal_eval(data_string)
 
 
+for i in range(0,N0,2):
+    data[i][i//2][2]= 0#random.gauss(0,0.001) # This sets all randomness to 0 in 
+    # Numerical estimation of meq with M ==0
+
 meq=np.zeros((N0,2*N0+1))
 for T in range(N0):
     for i in range(len(data[T])):
@@ -78,13 +92,17 @@ for T in range(N0):
 #%% Another series of data 2p4
 
 N0=16
-T0=N0//2
+T0=N0
 
 file=open("meq2P4.txt","r") #fixing the structure to make it right.
 data_string=file.read()
 #We can probably use np.loadtext instead 
 data = ast.literal_eval(data_string)
 
+
+for i in range(0,N0,2):
+    data[i][i//2][2]= 0#random.gauss(0,0.001) # This sets all randomness to 0 in 
+    # Numerical estimation of meq with M ==0
 
 meq=np.zeros((N0,2*N0+1))
 for T in range(N0):
@@ -96,13 +114,17 @@ for T in range(N0):
 
 
 N0=2**5
-T0=N0//2
+T0=N0
 
 file=open("meq2P5.txt","r") #fixing the structure to make it right.
 data_string=file.read()
 #We can probably use np.loadtext instead 
 data = ast.literal_eval(data_string)
 
+
+for i in range(0,N0,2):
+    data[i][i//2][2]= 0#random.gauss(0,0.001) # This sets all randomness to 0 in 
+    # Numerical estimation of meq with M ==0
 
 meq=np.zeros((N0,2*N0+1))
 for T in range(N0):
@@ -822,7 +844,7 @@ EVectors_transposed = ast.literal_eval(eigenvectors_string)
 
 #%% ON VÉRIFIE L'ORTHOGONALITÉ DES VECTEURS PROPRES
 
-print(np.dot(EVectors[],EVectors_transposed[5]))
+print(np.dot(EVectors[1],EVectors_transposed[5]))
 
 
 
@@ -1175,7 +1197,7 @@ reg = LinearRegression().fit(X, y)
 
 #%% Generate the list way more easily 
 
-from scipy.sparse.linalg import eigs
+
 
 list_lambda=np.zeros(N0-1) #On part de T0=1 et non T0=0
 for T0 in range(1,N0):
@@ -1341,3 +1363,82 @@ for i in range(T0+1):
 Pst_prime=np.dot(K,PstT0l)
 
 plt.plot(Pst_prime[1::2]-PstT0_1)
+
+
+#%% Bimodality study 
+
+#You need to manually input the data before
+
+runcell('Computing the transfer matrix', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py') #This gives the list_Pf thing (for the PQ)
+
+
+indices=np.zeros(len(list_Pf))
+                 
+for i in range(len(list_Pf)) :
+    indices[i]=np.argmax(list_Pf[i][i%2::2])+i%2
+    
+indices-=T0//2
+indices=np.abs(indices)
+plt.plot(indices)
+
+
+
+#%% doing the same for the sequencial process
+
+#In order : data, transfer matrix (for all T<T0=N0), compute the first EiV,compute the max
+indices=np.zeros(N0)
+for T0 in range(N0):
+      # We stop 
+    K=np.zeros((2*T0+1,2*T0+1))
+    M=T0-1    
+    for i in range(M+1): #len(data(M)) = M+1
+        #To be clear = data[T][M] = a list that contains : [T,M,meq(T,M)]
+        K[T0+data[M][i][1]+1][T0+data[M][i][1]]=(1 + data[M][i][2])/2  #ith line and i+1 column 
+        K[T0+data[M][i][1]-1][T0+data[M][i][1]]=(1 - data[M][i][2])/2
+        
+        
+
+    S=np.zeros((2*T0+1,2*T0+1))
+    for i in range (-T0,T0+1):
+        if i!=T0 : #Otherwise, bad index in the edges of the matrix
+            S[T0+i][T0+i+1]=(i+1+T0)/(2*T0)
+        if i!=-T0 :
+            S[T0+i][T0+i-1]=1-((i-1+T0)/(2*T0)) #to be checked
+
+    W=np.dot(K,S)
+    Wprime=np.zeros((T0+1,T0+1))
+
+    for i in range(T0+1):
+        for j in range(T0+1):
+            Wprime[i][j]=W[2*i][2*j]
+            
+    indices[T0]=np.abs(np.argmax(np.abs(np.real(eigs(Wprime,k=1,which='LM')[1])))-T0//2)
+    
+plt.plot(indices)
+
+
+#%% Plotting after renaming
+#This is for different N0
+
+
+plt.plot(np.linspace(0,1,1024),indices2p10,'b-',label='$N_0=1024$')
+plt.plot(np.linspace(0,1,256),indices2p8,'r-',label='$N_0=256$')
+plt.grid()
+plt.xlabel('Ratio $T_0/N_0$') 
+plt.ylabel('Most probable magnetisation $M*$')
+plt.legend()
+plt.title('Bimodality emergence')
+
+#plt.savefig('Bim_emergence.pdf')
+plt.show()
+
+
+#%% Plotting for same N0 and different T0 : is that useless ? 
+
+plt.plot(np.linspace(0,1,1024),indices2p10,'b-',label='$N_0=1024$')
+plt.plot(np.linspace(0,1,512),indices2p10[0:512],'r-',label='$N_0=1024$')
+plt.plot(np.linspace(0,1,256),indices2p10[0:256],'g-',label='$N_0=1024$')
+
+
+
+#%%
