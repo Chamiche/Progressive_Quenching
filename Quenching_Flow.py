@@ -9,6 +9,7 @@ Created on Fri Oct 23 11:37:08 2020
 #%% Loading relevant modules
 import numpy as np
 import random
+import math
 import ast
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
@@ -1300,11 +1301,11 @@ test=np.real(eigs(Wprime,k=1,which='LM')[1])
 T0=128
 
 K=np.zeros((2*T0+1,2*T0+1))
-for M in range(T0):  # We stop 
-    for i in range(M+1): #len(data(M)) = M+1
-        #To be clear = data[T][M] = a list that contains : [T,M,meq(T,M)]
-        K[T0+data[M][i][1]+1][T0+data[M][i][1]]=(1 + data[M][i][2])/2  #ith line and i+1 column 
-        K[T0+data[M][i][1]-1][T0+data[M][i][1]]=(1 - data[M][i][2])/2
+M=T0-1
+for i in range(M+1): #len(data(M)) = M+1
+    #To be clear = data[T][M] = a list that contains : [T,M,meq(T,M)]
+    K[T0+data[M][i][1]+1][T0+data[M][i][1]]=(1 + data[M][i][2])/2  #ith line and i+1 column 
+    K[T0+data[M][i][1]-1][T0+data[M][i][1]]=(1 - data[M][i][2])/2
 
 
 
@@ -1325,15 +1326,15 @@ for i in range(T0+1):
 PstT0=np.real(eigs(Wprime,k=1,which='LM')[1])
 PstT0*=1/np.sum(PstT0)
 
-T0+=1
+
 
 
 K=np.zeros((2*T0+1,2*T0+1))
-for M in range(T0):  # We stop 
-    for i in range(M+1): #len(data(M)) = M+1
-        #To be clear = data[T][M] = a list that contains : [T,M,meq(T,M)]
-        K[T0+data[M][i][1]+1][T0+data[M][i][1]]=(1 + data[M][i][2])/2  #ith line and i+1 column 
-        K[T0+data[M][i][1]-1][T0+data[M][i][1]]=(1 - data[M][i][2])/2
+M=T0-1
+for i in range(M+1): #len(data(M)) = M+1
+    #To be clear = data[T][M] = a list that contains : [T,M,meq(T,M)]
+    K[T0+data[M][i][1]+1][T0+data[M][i][1]]=(1 + data[M][i][2])/2  #ith line and i+1 column 
+    K[T0+data[M][i][1]-1][T0+data[M][i][1]]=(1 - data[M][i][2])/2
 
 
 
@@ -1423,13 +1424,14 @@ plt.plot(indices)
 
 plt.plot(np.linspace(0,1,1024),indices2p10,'b-',label='$N_0=1024$')
 plt.plot(np.linspace(0,1,256),indices2p8,'r-',label='$N_0=256$')
+plt.plot(np.linspace(0,1,32),indices2p5,'g-',label='$N_0=32$')
 plt.grid()
 plt.xlabel('Ratio $T_0/N_0$') 
 plt.ylabel('Most probable magnetisation $M*$')
 plt.legend()
 plt.title('Bimodality emergence')
 
-#plt.savefig('Bim_emergence.pdf')
+#plt.savefig('Bim_emergence_3.pdf')
 plt.show()
 
 
@@ -1441,4 +1443,44 @@ plt.plot(np.linspace(0,1,256),indices2p10[0:256],'g-',label='$N_0=1024$')
 
 
 
-#%%
+#%% Study of the energy part Vs entropy, trying to have a nice plot
+
+Pst_test=np.ones(T0+1) #for a given T0
+En_test=np.ones(T0+1)
+Entropy_test=np.zeros(T0+1)
+for M in range(1,T0): #the i's are basically the values of M
+    prod1=1
+    prod2=1
+    for T in range(M):#k  must take into account up to 
+        prod1 *= (1+data[T0-1][T][2])
+        prod2 *= (1-data[T0-1][T][2])
+    Pst_test[M] = math.comb(T0,M)*prod1/prod2
+    En_test[M] = prod1/prod2
+    Entropy_test[M]=math.comb(T0,M)
+Pst_test*=1/np.sum(Pst_test)  
+En_test*=1/np.sum(En_test)  
+Entropy_test*=1/np.sum(Entropy_test)  
+
+vals=np.linspace(-T0,T0, T0+1)
+plt.plot(vals,Pst_test)
+plt.plot(vals[5:-5],En_test[5:-5])
+plt.plot(vals,Entropy_test)
+plt.grid()
+plt.show()
+
+#%% Analytical adjoint distribution 
+
+Qst_test=np.zeros(T0+1)
+for M in range((T0+1)): #the i's are basically the values of M
+    if T0==N0 :
+        print("You've reached the limit")
+        break
+    prod1=1
+    prod2=1
+    for T in range(M):#k  must take into account up to 
+        prod1 *= (1+data[T0][T][2])
+        prod2 *= (1-data[T0][T+1][2])
+    Qst_test[M] = math.comb(T0,M)*prod1/prod2
+    
+Qst_test*=1/np.sum(Qst_test)  
+plt.plot(Qst_test)
