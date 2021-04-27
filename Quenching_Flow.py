@@ -997,8 +997,8 @@ for i in range((T0+1)): #the i's are basically the values of M
     prod1=1
     prod2=1
     for k in range(i-1):#k  must take into account up to 
-        prod1 *= (1+data[T0-3][k][2])
-        prod2 *= (1-data[T0-3][k][2])
+        prod1 *= (1+data[T0-1][k+1][2])
+        prod2 *= (1-data[T0-1][k+1][2])
     Pst_test[i] = math.comb(T0,i)* prod1/prod2
 
 Pst_test*=1/np.sum(Pst_test)  
@@ -1415,8 +1415,13 @@ for T0 in range(N0):
             
     indices[T0]=np.abs(np.argmax(np.abs(np.real(eigs(Wprime,k=1,which='LM')[1])))-T0//2)
     
-plt.plot(indices)
 
+x=np.arange(0,N0,1)
+mp8= 0.16405225626285802 #value of mes at the edge 
+def Mstar(m,T0):
+    return m*(T0+1-0.095*N0//2)-1
+plt.plot(x,Mstar(mp8,x))
+plt.plot(indices)
 
 #%% Plotting after renaming
 #This is for different N0
@@ -1455,15 +1460,15 @@ for M in range(1,T0): #the i's are basically the values of M
         prod1 *= (1+data[T0-1][T][2])
         prod2 *= (1-data[T0-1][T][2])
     Pst_test[M] = math.comb(T0,M)*prod1/prod2
-    En_test[M] = prod1/prod2
     Entropy_test[M]=math.comb(T0,M)
+    En_test[M] = Pst_test[M]/Entropy_test[M]
 Pst_test*=1/np.sum(Pst_test)  
 En_test*=1/np.sum(En_test)  
 Entropy_test*=1/np.sum(Entropy_test)  
 
 vals=np.linspace(-T0,T0, T0+1)
 plt.plot(vals,Pst_test)
-plt.plot(vals[5:-5],En_test[5:-5])
+plt.plot(vals,En_test)
 plt.plot(vals,Entropy_test)
 plt.grid()
 plt.show()
@@ -1484,3 +1489,37 @@ for M in range((T0+1)): #the i's are basically the values of M
     
 Qst_test*=1/np.sum(Qst_test)  
 plt.plot(Qst_test)
+
+ #%% Trying to guess where the max is goinf to be
+ 
+a=np.zeros(T0//2 -1)
+b=np.zeros(T0//2 -1)
+ 
+
+
+for i in range(T0//2 -1):
+    a[i]=data[T0][T0//2+i+1][2]-data[T0][T0//2+i][2]
+    b[i]=2/(T0+1)
+
+print(2*np.argmin(np.abs(a-b)))
+
+plt.plot(a,'b.')
+plt.plot(b)
+
+#%% systematic for all T0 ? 
+peaks=np.zeros(N0)
+for T0 in range(4,N0):
+    a=np.zeros(T0//2 -1)
+    b=np.zeros(T0//2 -1)
+     
+    for i in range(T0//2 -1):
+        a[i]=data[T0][T0//2+i+1][2]-data[T0][T0//2+i][2]
+        b[i]=2/(T0+1)
+    
+    peaks[T0]=2*np.argmin(np.abs(a-b))
+
+plt.plot(peaks)
+
+
+
+
