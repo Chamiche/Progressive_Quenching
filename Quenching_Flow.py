@@ -1370,13 +1370,13 @@ plt.plot(Pst_prime[1::2]-PstT0_1)
 
 #You need to manually input the data before
 
-runcell('Computing the transfer matrix', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py') #This gives the list_Pf thing (for the PQ)
+runcell('Computing the transfer matrix') #This gives the list_Pf thing (for the PQ)
 
 
 indices=np.zeros(len(list_Pf))
                  
 for i in range(len(list_Pf)) :
-    indices[i]=np.argmax(list_Pf[i][i%2::2])+i%2
+    indices[i]=np.abs(np.argmax(list_Pf[i][(i+1)%2::2])+i%2) #probleme d'indice sur le data avec les valeurs de j=1.2
     
 indices-=T0//2
 indices=np.abs(indices)
@@ -1420,7 +1420,7 @@ x=np.arange(0,N0,1)
 mp8= 0.16405225626285802 #value of mes at the edge 
 def Mstar(m,T0):
     return m*(T0+1-0.095*N0//2)-1
-plt.plot(x,Mstar(mp8,x))
+#plt.plot(x,Mstar(mp8,x))
 plt.plot(indices)
 
 #%% Plotting after renaming
@@ -1519,7 +1519,25 @@ for T0 in range(4,N0):
     peaks[T0]=2*np.argmin(np.abs(a-b))
 
 plt.plot(peaks)
+#Conclusion is that there is a problem for large T0 : the slope is not good
+#Also the threashold is not valid.
 
+#%% Peak analysis for the theoretical solutions P and Q
 
+#Compute the distribution, then locate the maximum
+peaks_st=np.zeros(N0)
+for T0 in range(N0):
+    Pst=np.zeros(T0+1)
+    for i in range((T0+1)): #the i's are basically the values of M
+        prod1=1
+        prod2=1
+        for k in range(i-1):#k  must take into account up to 
+            prod1 *= (1+data[T0-1][k+1][2])
+            prod2 *= (1-data[T0-1][k+1][2])
+        Pst[i] = math.comb(T0,i)* prod1/prod2
+    
+    peaks_st[T0]=np.abs(np.argmax(Pst)-T0//2)
 
+x=np.linspace(0,1,N0)
 
+plt.plot(x,peaks_st)
