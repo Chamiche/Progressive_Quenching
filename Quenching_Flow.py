@@ -74,7 +74,7 @@ for T in range(N0):
 #%% For N0=2p10=1024
 
 N0=2**10
-T0=N0//2
+T0=N0
 file=open("mList2P10.txt","r") #fixing the structure to make it right.
 data_string=file.read()
 #We can probably use np.loadtext instead 
@@ -133,6 +133,51 @@ for T in range(N0):
         meq[T][N0 + data[T][i][1]]=data[T][i][2]
         
 
+#%% Same for 2p6
+
+
+N0=2**6
+T0=N0
+
+file=open("meq2P6.txt","r") #fixing the structure to make it right.
+data_string=file.read()
+#We can probably use np.loadtext instead 
+data = ast.literal_eval(data_string)
+
+
+for i in range(0,N0,2):
+    data[i][i//2][2]= 0#random.gauss(0,0.001) # This sets all randomness to 0 in 
+    # Numerical estimation of meq with M ==0
+
+meq=np.zeros((N0,2*N0+1))
+for T in range(N0):
+    for i in range(len(data[T])):
+        meq[T][N0 + data[T][i][1]]=data[T][i][2]
+        
+#%% Same for 2p7
+
+
+N0=2**7
+T0=N0
+
+file=open("meq2P7.txt","r") #fixing the structure to make it right.
+data_string=file.read()
+#We can probably use np.loadtext instead 
+data = ast.literal_eval(data_string)
+
+
+for i in range(0,N0,2):
+    data[i][i//2][2]= 0#random.gauss(0,0.001) # This sets all randomness to 0 in 
+    # Numerical estimation of meq with M ==0
+
+meq=np.zeros((N0,2*N0+1))
+for T in range(N0):
+    for i in range(len(data[T])):
+        meq[T][N0 + data[T][i][1]]=data[T][i][2]
+        
+        
+        
+        
 
 #%% Normal PQ until T0
 #random.seed(100) #setting the same seed for the two processes will allow to make the same first trajectory
@@ -1541,3 +1586,41 @@ for T0 in range(N0):
 x=np.linspace(0,1,N0)
 
 plt.plot(x,peaks_st)
+
+#%%
+
+
+plt.plot(np.linspace(0,1,2**5),peaks2p5)
+plt.plot(np.linspace(0,1,2**6),peaks2p6)
+plt.plot(np.linspace(0,1,2**7),peaks2p7)
+plt.plot(np.linspace(0,1,2**8),peaks2p8)
+plt.plot(np.linspace(0,1,2**10),peaks2p10)
+plt.grid()
+
+#%% Testign the extremal paths for the PQ
+
+Ppq=np.zeros(T0+1)
+entrop=np.zeros(T0+1)
+weights=np.zeros(T0+1)
+for M in range(T0+1):
+    weight=1
+    entrop[M]=math.comb(T0,M)
+    for T in range(T0-M):
+        weight*=1-meq[T][N0-T]
+    for T in range(T0-M,T0):
+        weight*=1-meq[T][N0-((2*M-T0)-(T0-T))] #superduper janky 
+    weights[M]=weight
+    Ppq[M]=weight*entrop[M]/(2**T0)
+
+#plt.plot(np.linspace(-T0,T0,T0+1),Ppq)
+
+plt.plot(np.linspace(-T0,T0,T0+1),-np.log(entrop)-np.min(-np.log(entrop)),'b-',label='Entropy $S$')
+plt.plot(np.linspace(-T0,T0,T0+1),np.log(weights)-np.min(np.log(weights)),'r-',label='Path potential $-\\beta H$')
+diff=(-np.log(entrop)-np.min(-np.log(entrop)))-(np.log(weights)-np.min(np.log(weights)))
+plt.plot(np.linspace(-T0,T0,T0+1),diff)
+plt.xlabel('Magnetisation M')
+#plt.yscale('log')
+plt.ylabel('Relative contributions in probability')
+plt.grid()
+plt.legend()
+plt.show()
