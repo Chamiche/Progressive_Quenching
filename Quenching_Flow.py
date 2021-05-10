@@ -33,6 +33,14 @@ T0=N0
 N_iter=10**5
 
 #%% Loading the data || NEEDS TO BE FOR THE RIGHT N0 WITH THE RIGHT PATH ||
+L=8
+N0=2**L #System size 
+
+
+T0=N0
+
+N_iter=10**5
+
 
 file=open("mList2P8good.txt","r") #fixing the structure to make it right.
 data_string=file.read()
@@ -177,7 +185,30 @@ for T in range(N0):
         
         
         
+#%% Same for 2p9
+
+
+N0=2**9
+T0=N0
+
+file=open("meq2P9.txt","r") #fixing the structure to make it right.
+data_string=file.read()
+#We can probably use np.loadtext instead 
+data = ast.literal_eval(data_string)
+
+
+for i in range(0,N0,2):
+    data[i][i//2][2]= 0#random.gauss(0,0.001) # This sets all randomness to 0 in 
+    # Numerical estimation of meq with M ==0
+
+meq=np.zeros((N0,2*N0+1))
+for T in range(N0):
+    for i in range(len(data[T])):
+        meq[T][N0 + data[T][i][1]]=data[T][i][2]
         
+        
+        
+                
 
 #%% Normal PQ until T0
 #random.seed(100) #setting the same seed for the two processes will allow to make the same first trajectory
@@ -1587,15 +1618,38 @@ x=np.linspace(0,1,N0)
 
 plt.plot(x,peaks_st)
 
-#%%
+#%% Let's make all thje plots
+runcell('Loading the data || NEEDS TO BE FOR THE RIGHT N0 WITH THE RIGHT PATH ||', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
+runcell('Peak analysis for the theoretical solutions P and Q', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
+peaks2p8=peaks_st
+
+runcell('Same for 2p5', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
+runcell('Peak analysis for the theoretical solutions P and Q', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
+peaks2p5=peaks_st
+
+runcell('Same for 2p6', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
+runcell('Peak analysis for the theoretical solutions P and Q', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
+peaks2p6=peaks_st
+runcell('Same for 2p7', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
+runcell('Peak analysis for the theoretical solutions P and Q', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
+peaks2p7=peaks_st
+runcell('Same for 2p9', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
+runcell('Peak analysis for the theoretical solutions P and Q', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
+peaks2p9=peaks_st
+runcell('For N0=2p10=1024', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
+runcell('Peak analysis for the theoretical solutions P and Q', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
+peaks2p10=peaks_st
 
 
-plt.plot(np.linspace(0,1,2**5),peaks2p5)
-plt.plot(np.linspace(0,1,2**6),peaks2p6)
-plt.plot(np.linspace(0,1,2**7),peaks2p7)
-plt.plot(np.linspace(0,1,2**8),peaks2p8)
-plt.plot(np.linspace(0,1,2**10),peaks2p10)
+plt.plot(np.linspace(0,1,2**5),peaks2p5/2**5,label='2p5')
+plt.plot(np.linspace(0,1,2**6),peaks2p6/2**6,label='2p6')
+plt.plot(np.linspace(0,1,2**7),peaks2p7/2**7,label='2p7')
+plt.plot(np.linspace(0,1,2**8),peaks2p8/2**8,label='2p8')
+plt.plot(np.linspace(0,1,2**9),peaks2p9/2**9,label='2p9')
+plt.plot(np.linspace(0,1,2**10),peaks2p10/2**10,label='2p10')
+plt.legend()
 plt.grid()
+plt.show()
 
 #%% Testign the extremal paths for the PQ
 
