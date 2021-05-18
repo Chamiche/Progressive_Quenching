@@ -1664,17 +1664,96 @@ for M in range(T0+1):
     for T in range(T0-M,T0):
         weight*=1-meq[T][N0-((2*M-T0)-(T0-T))] #superduper janky 
     weights[M]=weight
-    Ppq[M]=weight*entrop[M]/(2**T0)
+    Ppq[M]=weight*entrop[M]
 
 #plt.plot(np.linspace(-T0,T0,T0+1),Ppq)
 
-plt.plot(np.linspace(-T0,T0,T0+1),-np.log(entrop)-np.min(-np.log(entrop)),'b-',label='Entropy $S$')
-plt.plot(np.linspace(-T0,T0,T0+1),np.log(weights)-np.min(np.log(weights)),'r-',label='Path potential $-\\beta H$')
+plt.plot(np.linspace(-T0,T0,T0+1),-np.log(entrop)-np.min(-np.log(entrop)),'b-',label='Path-count entropy $S$')
+plt.plot(np.linspace(-T0,T0,T0+1),np.log(weights)-np.min(np.log(weights)),'r-',label='Path-weight potential $-\\beta E$')
 diff=(-np.log(entrop)-np.min(-np.log(entrop)))-(np.log(weights)-np.min(np.log(weights)))
-plt.plot(np.linspace(-T0,T0,T0+1),diff)
+plt.plot(np.linspace(-T0,T0,T0+1),-diff)
 plt.xlabel('Magnetisation M')
 #plt.yscale('log')
 plt.ylabel('Relative contributions in probability')
 plt.grid()
 plt.legend()
 plt.show()
+
+#%% Let's try to make a nice pic
+
+
+M=np.linspace(-T0,T0,T0+1)
+S=-np.log(entrop)-np.min(-np.log(entrop))
+E=np.log(weights)-np.min(np.log(weights))
+diff=S-E
+
+
+fig, ax1 = plt.subplots()
+ax1.grid()
+#ax1.set_ylim(-20,175)
+
+ax1.set_xlabel('Magnetisation $M$')
+ax1.set_ylabel('Relative contributions in probability')
+
+pS, =ax1.plot(M, S, color='b',label='Path-count entropy $S$')
+pE, =ax1.plot(M,E, color='k',label='Path-weight potential $\\beta E$')
+
+ax2 = ax1.twinx()
+ax2.set_ylim(-0.23,2)
+ax2.set_ylabel('Difference of the two contributions',color='r')
+ax2.tick_params(axis='y', labelcolor='r')
+pdiff, =ax2.plot(M[50:N0-50],diff[50:N0-50],color='r',label='Difference $S-\\beta E$')
+
+axins = ax1.inset_axes([0.35,0.6, 0.3,0.3])
+X=110
+Y=115
+axins.plot(M[X:Y],E[X:Y], '-k')
+axins.plot(M[X:Y],S[X:Y],'b-')
+
+ax1.indicate_inset_zoom(axins, edgecolor="black")
+
+labels=['$S$','$\\beta E$','$S-\\beta E$']
+
+
+ax1.legend([pS,pE,pdiff],labels,loc='lower left')
+
+
+
+#fig.set_size_inches(10,7)
+
+plt.savefig('contributions_2.pdf')
+plt.show()
+
+
+#%% Making the plot for the signature
+
+t=np.arange(0,6)
+x=np.zeros(6)
+traj=np.array([0,1,0,1,2,1])
+traj2=np.array([0,1,2,1,2,1])
+traj3=np.array([0,1,2,3,2,1])
+fig, ax=plt.subplots()
+
+ax.vlines(5,-5, 5 , color='r', linestyles='dotted')
+#ax.set_ylim(5, -5)
+ax.set_xlabel('$T$')
+ax.set_ylabel('Magnetisation $M$')
+ax.spines['left'].set_position('zero')
+ax.spines['right'].set_color('none')
+ax.spines['bottom'].set_position('zero')
+ax.spines['top'].set_color('none')
+ax.plot(t,t,'--k')
+ax.plot(t,-t,'--k')
+
+ax.plot(t,-traj3,label='Corrected twice')
+ax.plot(t,-traj2,label='Corrected once')
+ax.plot(t,-traj,label='Initial trajectory')
+
+fig.legend(loc='upper left',  bbox_to_anchor=(0.15, 0.90))
+#plt.title('Trajectory with a (+,+,+,-,-) signature')
+plt.tight_layout()
+plt.savefig('Correction.pdf')
+plt.show()
+
+
+
