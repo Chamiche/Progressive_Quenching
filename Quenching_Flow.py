@@ -1690,7 +1690,7 @@ diff=S-E
 
 fig, ax1 = plt.subplots()
 ax1.grid()
-#ax1.set_ylim(-20,175)
+ax1.set_ylim(-19.25,175)
 
 ax1.set_xlabel('Magnetisation $M$')
 ax1.set_ylabel('Relative contributions in probability')
@@ -1699,10 +1699,10 @@ pS, =ax1.plot(M, S, color='b',label='Path-count entropy $S$')
 pE, =ax1.plot(M,E, color='k',label='Path-weight potential $\\beta E$')
 
 ax2 = ax1.twinx()
-ax2.set_ylim(-0.23,2)
+ax2.set_ylim(-0.22,2)
 ax2.set_ylabel('Difference of the two contributions',color='r')
 ax2.tick_params(axis='y', labelcolor='r')
-pdiff, =ax2.plot(M[50:N0-50],diff[50:N0-50],color='r',label='Difference $S-\\beta E$')
+pdiff, =ax2.plot(M[49:N0-48],diff[49:N0-48],color='r',label='Difference $S-\\beta E$')
 
 axins = ax1.inset_axes([0.35,0.6, 0.3,0.3])
 X=110
