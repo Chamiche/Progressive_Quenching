@@ -1721,7 +1721,7 @@ ax1.legend([pS,pE,pdiff],labels,loc='lower left')
 
 #fig.set_size_inches(10,7)
 
-plt.savefig('contributions_2.pdf')
+#plt.savefig('contributions_2.pdf')
 plt.show()
 
 
