@@ -22,15 +22,6 @@ import time
 from scipy.sparse.linalg import eigs
 
 
-#%% Parameters 
-
-L=8
-N0=2**L #System size 
-
-
-T0=N0
-
-N_iter=10**5
 
 #%% Loading the data || NEEDS TO BE FOR THE RIGHT N0 WITH THE RIGHT PATH ||
 L=8
@@ -548,7 +539,7 @@ for k in [4,5,6,7]:
     npM=npM/np.sum(M_count) #normalizing
     runcell('Plotting data and fit')
 
-#%% Computing the transfer matrix 
+#%% Computing the transfer matrices and get the PQ
 
 
 list_Pf=[]
@@ -568,7 +559,7 @@ for M in range(T0):  # We stop
         K[T0+data[M][i][1]-1][T0+data[M][i][1]]=(1 - data[M][i][2])/2
     
     P=np.dot(K,P) #the order is good.
-    list_Pf.append(P)
+    # list_Pf.append(P)    # UNCOMMENT TO ACCESS ALL THE DISTRIBUTIONS
     
 
 #%% Compute directly the total transfer matrix
@@ -625,9 +616,7 @@ for T in range (N_iter) :
 
 #%% Values_M
 
-Values_M=[]
-for k in range(-T0,T0+1):
-    Values_M.append(k)
+Values_M=np.arange(-T0,T0+1,2)
 
 
 #%% Plots
@@ -690,6 +679,8 @@ for i in range(2*T0+1):
 f.close()
 
 #%% Removing half of the lines and column (namely odd indicies)
+
+W=np.dot(K,S)
 
 Wprime=np.zeros((T0+1,T0+1))
 
@@ -1690,7 +1681,7 @@ diff=S-E
 
 fig, ax1 = plt.subplots()
 ax1.grid()
-#ax1.set_ylim(-20,175)
+ax1.set_ylim(-19.25,175)
 
 ax1.set_xlabel('Magnetisation $M$')
 ax1.set_ylabel('Relative contributions in probability')
@@ -1699,10 +1690,14 @@ pS, =ax1.plot(M, S, color='b',label='Path-count entropy $S$')
 pE, =ax1.plot(M,E, color='k',label='Path-weight potential $\\beta E$')
 
 ax2 = ax1.twinx()
-ax2.set_ylim(-0.23,2)
+ax2.set_ylim(-0.22,2)
 ax2.set_ylabel('Difference of the two contributions',color='r')
 ax2.tick_params(axis='y', labelcolor='r')
-pdiff, =ax2.plot(M[50:N0-50],diff[50:N0-50],color='r',label='Difference $S-\\beta E$')
+pdiff, =ax2.plot(M[49:N0-48],diff[49:N0-48],color='r',label='Difference $S-\\beta E$')
+
+P2=P[0::2]
+
+ptrue, = ax2.plot(M[49:N0-48],-np.log(P2[49:N0-48])+np.log(P2[N0//2]),'r.')
 
 axins = ax1.inset_axes([0.35,0.6, 0.3,0.3])
 X=110
@@ -1712,10 +1707,10 @@ axins.plot(M[X:Y],S[X:Y],'b-')
 
 ax1.indicate_inset_zoom(axins, edgecolor="black")
 
-labels=['$S$','$\\beta E$','$S-\\beta E$']
+labels=['$S$','$\\beta E$','$S-\\beta E$','ME solution']
 
 
-ax1.legend([pS,pE,pdiff],labels,loc='lower left')
+ax1.legend([pS,pE,pdiff,ptrue],labels,loc='lower left')
 
 
 
@@ -1734,10 +1729,18 @@ traj2=np.array([0,1,2,1,2,1])
 traj3=np.array([0,1,2,3,2,1])
 fig, ax=plt.subplots()
 
+
 ax.vlines(5,-5, 5 , color='r', linestyles='dotted')
 #ax.set_ylim(5, -5)
 ax.set_xlabel('$T$')
 ax.set_ylabel('Magnetisation $M$')
+
+#ax.set_yticks(np.arange(-5,6))
+#ax.set_yticklabels(['-5','','-3','','-1','','1','','3','','5'])
+#ax.set_yticklabels(['','-4','','-2','','','','2','','4',''])
+
+
+
 ax.spines['left'].set_position('zero')
 ax.spines['right'].set_color('none')
 ax.spines['bottom'].set_position('zero')
@@ -1745,15 +1748,389 @@ ax.spines['top'].set_color('none')
 ax.plot(t,t,'--k')
 ax.plot(t,-t,'--k')
 
-ax.plot(t,-traj3,label='Corrected twice')
-ax.plot(t,-traj2,label='Corrected once')
-ax.plot(t,-traj,label='Initial trajectory')
+p3, = ax.plot(t,-traj3,color='blue',label='Modified twice')
+p2, = ax.plot(t,-traj2,color='orange',label='Modified once')
+p1, = ax.plot(t,-traj,color='limegreen',label='Initial trajectory')
 
-fig.legend(loc='upper left',  bbox_to_anchor=(0.15, 0.90))
+labels=['Initial trajectory','Modified once','Modified twice']
+
+ax.set_yticks(np.arange(-5,6))
+#ax.set_yticklabels(['-5','','-3','','-1','','1','','3','','5'])
+ax.set_xticks(np.arange(0,6))
+ax.set_xticklabels(['','1','2','3','4','5'])
+ax.set_yticklabels(['-5','-4','-3','-2','-1','','1','2','3','4','5'])
+
+fig.text(0.09,0.46,'0')
+
+fig.legend([p1,p2,p3],labels,loc='upper left',  bbox_to_anchor=(0.15, 0.90))
 #plt.title('Trajectory with a (+,+,+,-,-) signature')
 plt.tight_layout()
-plt.savefig('Correction.pdf')
+
+
+#plt.savefig('Correction.pdf')
+plt.show()
+
+#%% Computing the Kr Sr distributions
+
+
+
+
+
+
+
+#%%  Making cool plots for the diffrence between PQ and stable distributions
+
+# =============================================================================
+# The plan : 
+# Loading data for increasing N0
+# Compute PQ and Pst 
+# Compute the difference, and take the maximum
+# Then plot the results in the coolest way
+# =============================================================================
+listN0=[2**4,2**5,2**6,2**7,2**8,2**9,2**10]
+
+diff=[]
+
+
+runcell('Another series of data 2p4', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
+
+runcell('Computing the transfer matrices and get the PQ', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
+runcell('Making the matrix for the random pick (easier to write)', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
+runcell('Removing half of the lines and column (namely odd indicies)', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
+x=eigs(Wprime,k=1,which='LM')[1] #x is nom the Eigenvalue distribution
+x=np.abs(x)
+x/=np.sum(x)
+y=np.zeros(N0+1)
+for i in range(N0+1) : y[i]=x[i][0]
+diff.append(np.max(np.abs(P[0::2]-y)))
+
+runcell('Same for 2p5', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
+runcell('Computing the transfer matrices and get the PQ', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
+runcell('Making the matrix for the random pick (easier to write)', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
+runcell('Removing half of the lines and column (namely odd indicies)', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
+x=eigs(Wprime,k=1,which='LM')[1] #x is nom the Eigenvalue distribution
+x=np.abs(x)
+x/=np.sum(x)
+y=np.zeros(N0+1)
+for i in range(N0+1) : y[i]=x[i][0]
+diff.append(np.max(np.abs(P[0::2]-y)))
+
+runcell('Same for 2p6', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
+runcell('Computing the transfer matrices and get the PQ', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
+runcell('Making the matrix for the random pick (easier to write)', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
+runcell('Removing half of the lines and column (namely odd indicies)', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
+x=eigs(Wprime,k=1,which='LM')[1] #x is nom the Eigenvalue distribution
+x=np.abs(x)
+x/=np.sum(x)
+y=np.zeros(N0+1)
+for i in range(N0+1) : y[i]=x[i][0]
+diff.append(np.max(np.abs(P[0::2]-y)))
+
+
+runcell('Same for 2p7', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
+runcell('Computing the transfer matrices and get the PQ', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
+runcell('Making the matrix for the random pick (easier to write)', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
+runcell('Removing half of the lines and column (namely odd indicies)', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
+x=eigs(Wprime,k=1,which='LM')[1] #x is nom the Eigenvalue distribution
+x=np.abs(x)
+x/=np.sum(x)
+y=np.zeros(N0+1)
+for i in range(N0+1) : y[i]=x[i][0]
+diff.append(np.max(np.abs(P[0::2]-y)))
+
+runcell('Loading the data || NEEDS TO BE FOR THE RIGHT N0 WITH THE RIGHT PATH ||', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
+runcell('Computing the transfer matrices and get the PQ', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
+runcell('Making the matrix for the random pick (easier to write)', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
+runcell('Removing half of the lines and column (namely odd indicies)', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
+x=eigs(Wprime,k=1,which='LM')[1] #x is nom the Eigenvalue distribution
+x=np.abs(x)
+x/=np.sum(x)
+y=np.zeros(N0+1)
+for i in range(N0+1) : y[i]=x[i][0]
+diff.append(np.max(np.abs(P[0::2]-y)))
+
+runcell('Same for 2p9', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
+runcell('Computing the transfer matrices and get the PQ', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
+runcell('Making the matrix for the random pick (easier to write)', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
+runcell('Removing half of the lines and column (namely odd indicies)', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
+x=eigs(Wprime,k=1,which='LM')[1] #x is nom the Eigenvalue distribution
+x=np.abs(x)
+x/=np.sum(x)
+y=np.zeros(N0+1)
+for i in range(N0+1) : y[i]=x[i][0]
+diff.append(np.max(np.abs(P[0::2]-y)))
+
+runcell('For N0=2p10=1024', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
+runcell('Computing the transfer matrices and get the PQ', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
+runcell('Making the matrix for the random pick (easier to write)', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
+runcell('Removing half of the lines and column (namely odd indicies)', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
+x=eigs(Wprime,k=1,which='LM')[1] #x is nom the Eigenvalue distribution
+x=np.abs(x)
+x/=np.sum(x)
+y=np.zeros(N0+1)
+for i in range(N0+1) : y[i]=x[i][0]
+diff.append(np.max(np.abs(P[0::2]-y))/np.max(y))
+
+
+diff=np.asarray(diff)
+
+#%%
+
+fig, ax1 = plt.subplots()
+
+ax1.set_xlabel('System size $N_0$')
+ax1.set_ylabel('Relative difference between $\\vec{P}^{st}$ and $\\vec{P}^{PQ}$ ')
+ax1.grid(b=True,which='both')
+ax1.loglog(listN0,diff,'ro')
+plt.title('Log-log plot of the error between PQ and the stationnary distribution')
+plt.tight_layout()
+
+#plt.savefig('loglogdiff.pdf')
 plt.show()
 
 
+#%%
+# =============================================================================
+# The plan is :
+    # Compute the product of R matrices S then K
+    # Compute S^R K^R on a certain P 
+# =============================================================================
 
+R=100 #Needs to be between 1 and T0
+N_iter=10000
+
+def makeS(T0):
+    S=np.zeros((2*N0+1,2*N0+1))
+    for i in range (-T0,T0+1):
+        if i!=T0 : #Otherwise, bad index in the edges of the matrix
+            S[N0+i][N0+i+1]=(i+1+T0)/(2*T0)
+        if i!=-T0 :
+            S[N0+i][N0+i-1]=1-((i-1+T0)/(2*T0)) #to be checked
+    return(S)
+
+    
+def makeK(T0):
+    K=np.zeros((2*N0+1,2*N0+1))    
+    M=T0
+    for i in range(T0): #len(data(M)) = M+1
+        #To be clear = data[T][M] = a list that contains : [T,M,meq(T,M)]
+        K[N0+data[M][i][1]+1][N0+data[M][i][1]]=(1 + data[M][i][2])/2  #ith line and i+1 column 
+        K[N0+data[M][i][1]-1][N0+data[M][i][1]]=(1 - data[M][i][2])/2
+    return(K)
+#%%
+R= 100 #Needs to be between 1 and T0
+N_iter= 1
+
+KR=makeK(N0-R-1)
+SR=makeS(N0)
+for i in range (1,R+1):
+    SR=np.dot(makeS(N0-i),SR)
+for j in range(R,0,-1):
+    KR=np.dot(makeK(N0-j),KR)
+    
+# for M in range (T0-R,T0):  # We stop 
+#     K=np.zeros((2*T0+1,2*T0+1))       
+#     for i in range(M+1): #len(data(M)) = M+1
+#         #To be clear = data[T][M] = a list that contains : [T,M,meq(T,M)]
+#         K[T0+data[M][i][1]+1][T0+data[M][i][1]]=(1 + data[M][i][2])/2  #ith line and i+1 column 
+#         K[T0+data[M][i][1]-1][T0+data[M][i][1]]=(1 - data[M][i][2])/2
+#     if (M==T0-R) :
+#         K1=K
+#     elif (M==T0-R+1):
+#         KR=np.dot(K,K1)
+#     else :
+#         KR=np.dot(K,KR)
+    
+    
+        
+
+# P0=np.zeros((N0 +1))
+# P0[N0//2]=1
+
+P0=np.ones((N0 +1))
+P0/=N0+1
+
+M=np.dot(KR,SR)
+Mprime=np.zeros((N0+1,N0+1))
+
+for i in range(N0+1):
+    for j in range(N0+1):
+        Mprime[i][j]=M[2*i][2*j]
+for i in range(0,N_iter):
+    P0=np.dot(Mprime,P0) 
+    if (i%100==0):
+        plt.plot(P0)
+    
+#plt.plot(P0)
+#%%
+
+Mprime=np.zeros((N0+1,N0+1))
+
+for i in range(N0+1):
+    for j in range(N0+1):
+        Mprime[i][j]=M[2*i][2*j]
+        
+#%%
+
+Pcontrol=eigs(Mprime,k=1,which='LM')
+plt.plot(-Pcontrol[1])
+
+#%%
+
+list_eig=np.zeros(254)
+
+for R in range(3,255):
+    KR=makeK(N0-R-1)
+    SR=makeS(N0)
+    for i in range (1,R+1):
+        SR=np.dot(makeS(N0-i),SR)
+    for j in range(R,0,-1):
+        KR=np.dot(makeK(N0-j),KR)
+        
+    M=np.dot(KR,SR)
+    Mprime=np.zeros((N0+1,N0+1))
+    
+    for i in range(N0+1):
+        for j in range(N0+1):
+            Mprime[i][j]=M[2*i][2*j]
+    list_eig[R-3]=np.abs(eigs(Mprime, k=1, which='LM')[0])
+    
+plt.plot(list_eig)
+
+
+#%% Making plots for the different distributions 
+
+plt.plot(Values_M,P[0::2])
+plt.xlabel('Magnetisation $M$')
+plt.ylabel('PQ distribution $P^{(PQ)}$')
+
+plt.show()
+
+#%%
+Pst0=eigs(Wprime,k=1,which='LM')[1]
+
+Pst=np.zeros(len(Pst0))
+
+for i in range(len(Pst)):
+    Pst[i]=np.abs(Pst0[i][0])
+    
+Pst/=np.sum(Pst)
+
+plt.plot(Values_M,Pst)
+
+plt.xlabel('Magnetisation $M$')
+plt.ylabel('RQ distribution $P^{(RQ)}$')
+
+plt.grid()
+
+plt.show()
+
+#%%
+
+plt.plot(np.abs((Pst-P[0::2])))
+plt.xlabel('Magnetisation $M$')
+plt.ylabel('$| P^{(RQ)} - P^{(PQ)} |$')
+
+plt.show()
+
+#%%
+
+plt.figure()
+plt.subplot(3,1,1)
+
+plt.plot(Values_M,P[0::2])
+plt.ylabel(' $P^{(PQ)}$')
+
+plt.grid()
+
+plt.subplot(3,1,2)
+
+plt.plot(Values_M,Pst)
+
+plt.ylabel('$P^{(RQ)}$')
+
+plt.grid()
+
+plt.subplot(3,1,3)
+
+plt.plot(Values_M,np.abs((Pst-P[0::2])))
+plt.xlabel('Magnetisation $M$')
+plt.ylabel('$| P^{(RQ)} - P^{(PQ)} |$')
+
+plt.grid()
+
+
+plt.tight_layout()
+
+
+plt.show()
+
+
+#%%
+plt.figure()
+plt.subplot(1,2,1)
+
+plt.plot(Values_M,P[0::2])
+plt.ylabel(' $P^{(PQ)}$')
+
+plt.grid()
+
+plt.subplot(1,2,2)
+
+plt.plot(Values_M,Pst)
+
+plt.ylabel('$P^{(RQ)}$')
+
+plt.grid()
+
+
+plt.tight_layout()
+
+#plt.savefig('SameSame.pdf')
+
+plt.show()
+
+#%%
+
+fig, ax1 =plt.subplots()
+
+ax1.plot(Values_M,P[0::2],'b--',label='$P^{(PQ)}$')
+ax1.set_xlabel('Magnetisation $M$')
+ax1.set_ylabel('PQ distribution $P^{(PQ)}$')
+
+ax1.legend(loc='upper left')
+
+ax2 = ax1.twinx()
+ax2.plot(Values_M,np.abs((Pst-P[0::2])),'r', label='Diff')
+ax2.set_ylabel('$| P^{(RQ)} - P^{(PQ)} |$')
+ax2.legend(loc='upper right')
+
+ax1.grid()
+plt.savefig('PandDiff.pdf')
+plt.show()
+
+#%%
+
+for T0 in [4,5,6,7,8,9,10]: 
+    #The order is : compute K, compute W, write W in different files, job done
+    runcell('Computing the transfer matrix', 'C:/Users/Chamo/Desktop/Numerical computations/Quenching_Flow.py')
+    runcell('Making the matrix for the random pick (easier to write)', 'C:/Users/Chamo/Desktop/Numerical computations/Quenching_Flow.py')
+    W=np.dot(K,S)
+    Wprime=np.zeros((T0+1,T0+1))
+
+    for i in range(T0+1):
+        for j in range(T0+1):
+            Wprime[i][j]=W[2*i][2*j]
+            
+    Pst0=eigs(Wprime,k=1,which='LM')[1]
+
+    Pst=np.zeros(len(Pst0))
+    
+    for i in range(len(Pst)):
+        Pst[i]=np.abs(Pst0[i][0])
+        
+    Pst/=np.sum(Pst)
+    
+    plt.plot(P[0::2],'r')
+    plt.plot(Pst,'b')
+    plt.show()
