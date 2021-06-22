@@ -2106,15 +2106,15 @@ ax2.set_ylabel('$| P^{(RQ)} - P^{(PQ)} |$')
 ax2.legend(loc='upper right')
 
 ax1.grid()
-plt.savefig('PandDiff.pdf')
+#plt.savefig('PandDiff.pdf')
 plt.show()
 
 #%%
 
 for T0 in [4,5,6,7,8,9,10]: 
     #The order is : compute K, compute W, write W in different files, job done
-    runcell('Computing the transfer matrix', 'C:/Users/Chamo/Desktop/Numerical computations/Quenching_Flow.py')
-    runcell('Making the matrix for the random pick (easier to write)', 'C:/Users/Chamo/Desktop/Numerical computations/Quenching_Flow.py')
+    runcell('Computing the transfer matrices and get the PQ', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
+    runcell('Making the matrix for the random pick (easier to write)', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
     W=np.dot(K,S)
     Wprime=np.zeros((T0+1,T0+1))
 
@@ -2131,6 +2131,6 @@ for T0 in [4,5,6,7,8,9,10]:
         
     Pst/=np.sum(Pst)
     
-    plt.plot(P[0::2],'r')
-    plt.plot(Pst,'b')
+    plt.plot(P[0::2],'ro')
+    plt.plot(Pst,'b*')
     plt.show()
