@@ -1714,7 +1714,7 @@ ax1.legend([pS,pE,pdiff,ptrue],labels,loc='lower left')
 
 #fig.set_size_inches(10,7)
 
-plt.savefig('contributions_2.pdf')
+#plt.savefig('contributions_2.pdf')
 plt.show()
 
 
@@ -2177,3 +2177,30 @@ for T0 in [4,5,6,7,8,9,10]:
     plt.plot(P[0::2],'ro')
     plt.plot(Pst,'b*')
     plt.show()
+    
+#%% é sé bartiiii
+
+list_T=np.arange(0,N0)
+def Peaks(T):
+    c=5.06
+    v=0.933
+    alpha=np.sqrt(3*N0*(2+c*(N0**(1-v))))
+    # return (np.floor((((T+2)/N0)*alpha)+0.5))
+    return((((T+2)/N0)*alpha))
+
+plt.plot(list_T,Peaks(list_T))
+
+#%%shifted
+shift_T=np.zeros(N0)
+# beg=19 #for N0=256
+beg=np.int(np.floor(0.04 * N0))
+for i in range(beg,N0):
+    shift_T[i]=i-beg
+
+plt.plot(list_T, peaks_st)
+plt.plot(list_T, Peaks(shift_T)/2)
+plt.grid()
+plt.show()
+
+#%%
+
