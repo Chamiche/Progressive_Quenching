@@ -439,9 +439,7 @@ plt.show()
 
 #%% Counting without the histogram
 
-Values_M=[]
-for k in range(-T0,T0+1,2):
-    Values_M.append(k)
+Values_M=np.arange(-T0,T0+1,2)
     
 M_count=[]
 for k in Values_M :
@@ -2090,7 +2088,8 @@ plt.tight_layout()
 
 plt.show()
 
-#%%
+#%% Making the plot for the differences between martingale estimation and 
+# The Master Equation solution
 
 fig, ax1 =plt.subplots()
 
@@ -2109,6 +2108,50 @@ ax1.grid()
 #plt.savefig('PandDiff.pdf')
 plt.show()
 
+#%% Trying another plot with insets
+
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+
+fig, ax =plt.subplots()
+
+p1, = ax.plot(Values_M,np.abs((Pst-P[0::2])),'r', label='Difference')
+ax.set_xlabel('Magnetisation $M$')
+ax.set_ylabel('$| P^{(RQ)} - P^{(PQ)} |$')
+
+ax.set_ylim(-2e-8,4e-7)
+
+ax1 = ax.twinx()
+p2, = ax1.plot(Values_M,P[0::2],'b--',label='$P^{(PQ)}$')
+ax1.set_xlabel('Magnetisation $M$')
+ax1.set_ylabel('PQ distribution $P^{(PQ)}$')
+
+axins1 = inset_axes(ax, width=1, height=0.8,loc='center right',borderpad=0.5)
+
+axins1.tick_params(labelsize="small",labelleft=False,grid_alpha=0.5)
+
+axins1.plot(Values_M,P[0::2],label='$P^{(PQ)}$')
+axins1.legend(loc="lower center",fontsize="small")
+axins1.grid()
+
+axins2 = inset_axes(ax, width=1, height=0.8,loc='upper right',borderpad=0.5)
+
+axins2.plot(Values_M,Pst,label='$P^{(RQ)}$')
+axins2.tick_params(labelsize="small",labelleft=False ,labelbottom=False,grid_alpha=0.5)
+axins2.grid()
+axins2.legend(loc="lower center",fontsize="small")
+
+ax.grid()
+
+
+plt.tight_layout()
+
+labels=['Difference','$P^{(PQ)}$']
+
+fig.legend([p1,p2],labels,loc='upper left',  bbox_to_anchor=(0.12, 0.90))
+
+#plt.savefig('Contributions_inset.pdf')
+
+plt.show()
 #%%
 
 for T0 in [4,5,6,7,8,9,10]: 
