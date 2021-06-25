@@ -2118,7 +2118,7 @@ p1, = ax.plot(Values_M,np.abs((Pst-P[0::2])),'r', label='Difference')
 ax.set_xlabel('Magnetisation $M$')
 ax.set_ylabel('$| P^{(RQ)} - P^{(PQ)} |$')
 
-ax.set_ylim(-2e-8,4e-7)
+ax.set_ylim(0,4e-7)
 
 ax1 = ax.twinx()
 p2, = ax1.plot(Values_M,P[0::2],'b--',label='$P^{(PQ)}$')
@@ -2140,6 +2140,8 @@ axins2.tick_params(labelsize="small",labelleft=False ,labelbottom=False,grid_alp
 axins2.grid()
 axins2.legend(loc="lower center",fontsize="small")
 
+ax1.set_ylim(0,0.0085)
+
 ax.grid()
 
 
@@ -2157,7 +2159,7 @@ plt.show()
 for T0 in [4,5,6,7,8,9,10]: 
     #The order is : compute K, compute W, write W in different files, job done
     runcell('Computing the transfer matrices and get the PQ', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
-    runcell('Making the matrix for the random pick (easier to write)', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
+    runcell('Making the matrix for the random pick (easier to write)')
     W=np.dot(K,S)
     Wprime=np.zeros((T0+1,T0+1))
 
@@ -2181,25 +2183,49 @@ for T0 in [4,5,6,7,8,9,10]:
 #%% é sé bartiiii
 
 list_T=np.arange(0,N0)
-def Peaks(T):
+def Peaks8(T,N0):
     c=5.06
     v=0.933
-    alpha=np.sqrt(3*N0*(2+c*(N0**(1-v))))
+    #alpha=np.sqrt(3*N0*(1+c*(N0**(1-v))))
+    alpha=np.sqrt(3*N0*((1+(N0*0.03005))))
     # return (np.floor((((T+2)/N0)*alpha)+0.5))
-    return((((T+2)/N0)*alpha))
+    return((((T+1)/N0)*alpha))
 
-plt.plot(list_T,Peaks(list_T))
+def Peaks10(T,N0):
+    c=5.06
+    v=0.933
+    #alpha=np.sqrt(3*N0*(1+c*(N0**(1-v))))
+    alpha=np.sqrt(3*N0*((1+(N0*0.0082))))
+    # return (np.floor((((T+2)/N0)*alpha)+0.5))
+    return((((T+1)/N0)*alpha))
+
+def Peaks_test(T,N0):
+    if(N0=256): 
+        j=1.03005
+    if(N0=1024):
+        j=1.0082
+    alpha=(1/j)*np.sqrt(N0-1-(N0/j))
+
+plt.plot(list_T,Peaks(list_T,N0))
 
 #%%shifted
 shift_T=np.zeros(N0)
 # beg=19 #for N0=256
-beg=np.int(np.floor(0.04 * N0))
+beg=np.int(np.floor(0.05 * N0))
 for i in range(beg,N0):
     shift_T[i]=i-beg
 
-plt.plot(list_T, peaks_st)
-plt.plot(list_T, Peaks(shift_T)/2)
+plt.plot(list_T/N0, peaks_st,'b-',label='$M°(T)$ for $N_0=256$')
+plt.plot(np.arange(0,2**10)/2**10, peaks_2p10,label='$M°(T)$ for $N_0=1024$')
+plt.plot(list_T/N0, Peaks8(list_T,N0)/2,'r--' ,label='$\\alpha (N_0) \\frac{(T+1)}{N_0} $ (offseted) for $N_0=256$')
+plt.plot(np.linspace(0, 2**10,2**10)/2**10,Peaks10(np.linspace(0, 2**10,2**10),2**10)/2,'--',
+         label='$\\alpha (N_0) \\frac{(T+1)}{N_0} $ (offseted) for $N_0=1024$')
+plt.xlabel('$T/N_0$')
+plt.ylabel('Maximum of probability $M°(T)$')
 plt.grid()
+plt.legend()
+plt.tight_layout()
+#plt.savefig('Peaks.pdf')
 plt.show()
 
 #%%
