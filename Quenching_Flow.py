@@ -547,7 +547,7 @@ P0[T0]=1 #Origin of the probabilities
 #P0[T0+2]=1 #Origin of the probabilities
 
 P=P0   
-list_Pf.append(P)
+#list_Pf.append(P)
 for M in range(T0):  # We stop 
     K=np.zeros((2*T0+1,2*T0+1))
         
@@ -557,7 +557,7 @@ for M in range(T0):  # We stop
         K[T0+data[M][i][1]-1][T0+data[M][i][1]]=(1 - data[M][i][2])/2
     
     P=np.dot(K,P) #the order is good.
-    # list_Pf.append(P)    # UNCOMMENT TO ACCESS ALL THE DISTRIBUTIONS
+    list_Pf.append(P)    # UNCOMMENT TO ACCESS ALL THE DISTRIBUTIONS
     
 
 #%% Compute directly the total transfer matrix
@@ -1607,6 +1607,17 @@ x=np.linspace(0,1,N0)
 
 plt.plot(x,peaks_st)
 
+#%% Peak analysis for the Master Equation solutions
+
+peaks_ME=np.zeros(N0)
+for T in range(N0):
+    peaks_ME[T]=np.abs(np.argmax(list_Pf[T])-N0)
+
+x=np.linspace(0,1,N0)
+
+plt.plot(x,peaks_ME)
+
+
 #%% Let's make all thje plots
 runcell('Loading the data || NEEDS TO BE FOR THE RIGHT N0 WITH THE RIGHT PATH ||', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
 runcell('Peak analysis for the theoretical solutions P and Q', 'C:/Users/Chamo/Documents/GitHub/Progressive_Quenching/Quenching_Flow.py')
@@ -2183,50 +2194,32 @@ for T0 in [4,5,6,7,8,9,10]:
 #%% é sé bartiiii
 
 list_T=np.arange(0,N0)
-def Peaks8(T,N0):
-    c=5.06
-    v=0.933
-    #alpha=np.sqrt(3*N0*(1+c*(N0**(1-v))))
-    alpha=np.sqrt(3*N0*((1+(N0*0.03005))))
-    # return (np.floor((((T+2)/N0)*alpha)+0.5))
-    return((((T+1)/N0)*alpha))
 
-def Peaks10(T,N0):
-    c=5.06
-    v=0.933
-    #alpha=np.sqrt(3*N0*(1+c*(N0**(1-v))))
-    alpha=np.sqrt(3*N0*((1+(N0*0.0082))))
-    # return (np.floor((((T+2)/N0)*alpha)+0.5))
-    return((((T+1)/N0)*alpha))
+def Peaks8_2(T,N0):
+    return((T+2)*np.sqrt(3*(2/N0+0.03005)))
 
-def Peaks_test(T,N0):
-    if(N0=256): 
-        j=1.03005
-    if(N0=1024):
-        j=1.0082
-    alpha=(1/j)*np.sqrt(N0-1-(N0/j))
 
-plt.plot(list_T,Peaks(list_T,N0))
+def Peaks10_2(T,N0):
+    return((T+2)*np.sqrt(3*(2/N0+0.0082)))
+
+
 
 #%%shifted
-shift_T=np.zeros(N0)
-# beg=19 #for N0=256
-beg=np.int(np.floor(0.05 * N0))
-for i in range(beg,N0):
-    shift_T[i]=i-beg
 
-plt.plot(list_T/N0, peaks_st,'b-',label='$M°(T)$ for $N_0=256$')
-plt.plot(np.arange(0,2**10)/2**10, peaks_2p10,label='$M°(T)$ for $N_0=1024$')
-plt.plot(list_T/N0, Peaks8(list_T,N0)/2,'r--' ,label='$\\alpha (N_0) \\frac{(T+1)}{N_0} $ (offseted) for $N_0=256$')
-plt.plot(np.linspace(0, 2**10,2**10)/2**10,Peaks10(np.linspace(0, 2**10,2**10),2**10)/2,'--',
-         label='$\\alpha (N_0) \\frac{(T+1)}{N_0} $ (offseted) for $N_0=1024$')
+plt.plot(np.linspace(0,1,256), peaks2p8,'b-',label='$M°(T)$ for $N_0=256$')
+plt.plot(np.linspace(0,1,1024), peaks2p10,label='$M°(T)$ for $N_0=1024$')
+plt.plot(np.linspace(0,1,256), Peaks8_2(np.arange(0,256),256),'r--' ,label='$\\alpha (N_0) \\frac{(T+2)}{N_0} $ for $N_0=256$')
+plt.plot(np.linspace(0,1,2**10),Peaks10_2(np.linspace(0, 2**10,2**10),2**10),'--',
+         label='$\\alpha (N_0) \\frac{(T+2)}{N_0} $ for $N_0=1024$')
 plt.xlabel('$T/N_0$')
 plt.ylabel('Maximum of probability $M°(T)$')
 plt.grid()
 plt.legend()
 plt.tight_layout()
-#plt.savefig('Peaks.pdf')
+#plt.savefig('Peaks_corrected.pdf')
 plt.show()
 
-#%%
+#%% redo without shift and the real thing.
+
+
 
