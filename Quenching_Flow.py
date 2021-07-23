@@ -2221,5 +2221,27 @@ plt.show()
 
 #%% redo without shift and the real thing.
 
+#%% Thermodynamic equilibrium solution
+list_M=np.arange(-N0,N0+1,2)
+Pth=np.zeros(N0+1)
+for i in range(N0+1):
+    M=np.int(list_M[i])
+    prout=math.comb(T0,(M+N0)//2)
+    logP=(-(1.030054796971118/N0)*(N0-(M**2))/2) + math.log(prout)
+    Pth[i]=np.exp(logP)
+Pth/=np.sum(Pth)
+    
 
+Pst=np.zeros(T0+1)
+for i in range((T0+1)): #the i's are basically the values of M
+    prod1=1
+    prod2=1
+    for k in range(i-1):#k  must take into account up to 
+        prod1 *= (1+data[T0-1][k+1][2])
+        prod2 *= (1-data[T0-1][k+1][2])
+    Pst[i] = math.comb(T0,i)* prod1/prod2
+Pst/=np.sum(Pst)
 
+plt.plot(Pst-Pth)
+
+#%%
