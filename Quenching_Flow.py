@@ -2244,4 +2244,118 @@ Pst/=np.sum(Pst)
 
 plt.plot(Pst-Pth)
 
+#%% Generating the entire process with our formula
+
+# N0 is fixed, we generate all the solutions for T going to 0 up to 
+# N0. We can check after that the N0 solution matched
+
+proba_list_canonical=[]
+# j=1.030054796971118 #Only for N0= 2**8
+j=1.02
+# Each vector has T components, check len(range(-10,10,2))
+for T in range(1,N0+1):
+    proba=[]
+    for M in range(-T,T+1,2):
+        value=0
+        for k in range(0,N0-T+1):
+            value+=math.comb(N0-T,k)*np.exp((j/(2*N0))*(2*k-N0+T+M)**2)
+        value*=math.comb(T,(T+M)//2)
+        proba.append(value)
+    proba=np.array(proba)
+    proba/=np.sum(proba)
+    proba_list_canonical.append(proba)
+
+# It works pretty well, only for small N0 (less than 2**8)
+
+#%% Can we check the size effect of the transition ?
+# At first check the localization of the maxima
+# Before, we had peaks_st[T0]=np.abs(np.argmax(Pst)-T0//2)
+# Which worked pretty well
+
+peaks_canonical=np.zeros(N0)
+for T in range(N0):
+    peaks_canonical[T]=np.argmax(proba_list_canonical[T][0:T//2 +1])  -T//2
+           
+
+# It seems that our porblem is that the penultimate value is one rank up
+# Or at least it seems to be the case, because the max value SHOULD be 
+# increasing. How can we change that ?
+
 #%%
+
+# We can make a program that does : "Do we have a back and forth move ?"
+
+def Back_and_Forth(l):
+    N=len(l)
+    for i in range(N-2):
+        val1=l[i]
+        val2=l[i+1]
+        val3=l[i+2]
+        if (val2==val1-2 and val3==val1) :
+            l[i+1]=val1
+
+
+#%% We do everything at once :
+    
+    
+peaks_canonical=np.zeros(N0)
+for T in range(N0):
+    peaks_canonical[T]=np.linspace(-(T+1),T+1,T+2)[np.argmax(proba_list_canonical[T][0:(T+1)//2 +1])] +(T+1)%2
+    
+    # We take 
+    # linspace from T+1 because the proba_list starts for T=+1 so we need to take that into account
+    # We need to check with the real simulations if we have that
+    # But since the last linspace MUST BE from -N0 to N0
+    # That makes complete sense
+    
+Back_and_Forth(peaks_canonical) 
+
+# The act of removing the effect of odd number of spins 
+# And the back and forth movement is not really physical 
+# because it is normal to have a non-zero value when dealing with odd spins
+
+plt.plot(np.linspace(0,1,N0), np.abs(peaks_canonical)) 
+
+# And now it looks good, from a physics point of view
+
+
+#%% Next step is to make the log computations
+
+# Which hopefully will work
+# But first a test with a completion bar 
+
+from tqdm import tqdm # OK GAME CHANGER HERE
+
+
+proba_list_canonical=[]
+j=1.030054796971118 #Only for N0= 2**8
+# j=1.02
+# Each vector has T components, check len(range(-10,10,2))
+for T in tqdm(range(1,N0+1)):
+    proba=[]
+    for M in range(-T,T+1,2):
+        value=0
+        for k in range(0,N0-T+1):
+            value+=math.comb(N0-T,k)*np.exp((j/(2*N0))*(2*k-N0+T+M)**2)
+        value*=math.comb(T,(T+M)//2)
+        proba.append(value)
+    proba=np.array(proba)
+    proba/=np.sum(proba)
+    proba_list_canonical.append(proba)
+    
+#%% Log Stirling, that will be useful
+
+def Log_Stirling(N):
+    if N<20 : return(np.log(np.float(math.factorial(N))))
+    else :
+        return(N*(np.log(N)-1) + 0.5*np.log(2*np.pi*N))
+    
+def Approx_Log_Comb(n,k):
+    return (Log_Stirling(n)-(Log_Stirling(k)+Log_Stirling(n-k)))
+
+def Approx_Comb(n,k):
+    return(np.exp(Approx_Log_Comb(n, k)))
+
+
+#%%
+
