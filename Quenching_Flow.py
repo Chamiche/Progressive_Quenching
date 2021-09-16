@@ -21,8 +21,25 @@ import time
 
 from scipy.sparse.linalg import eigs
 
+#%% Log for the values of the coupling constants
+"""
+Documentation
+1, 1
+2, 1
+3, 1
+4, 1.25 #these look exact, but I have to proove it
 
+5, 1.188398582218761,
+6, 1.1026833438841046, 
+7, 1.0559249177813748, 
+8, 1.030054796971118, 
+9, 1.0158592327449962,
+10, 1.0082210117186894, 
+11, 1.0042019092570047, 
+12, 1.0021272512222559, 
+13, 1.0010707528735596
 
+"""
 #%% Loading the data || NEEDS TO BE FOR THE RIGHT N0 WITH THE RIGHT PATH ||
 L=8
 N0=2**L #System size 
@@ -2318,31 +2335,6 @@ plt.plot(np.linspace(0,1,N0), np.abs(peaks_canonical))
 
 # And now it looks good, from a physics point of view
 
-
-#%% Next step is to make the log computations
-
-# Which hopefully will work
-# But first a test with a completion bar 
-
-from tqdm import tqdm # OK GAME CHANGER HERE
-
-
-proba_list_canonical=[]
-j=1.030054796971118 #Only for N0= 2**8
-# j=1.02
-# Each vector has T components, check len(range(-10,10,2))
-for T in tqdm(range(1,N0+1)):
-    proba=[]
-    for M in range(-T,T+1,2):
-        value=0
-        for k in range(0,N0-T+1):
-            value+=math.comb(N0-T,k)*np.exp((j/(2*N0))*(2*k-N0+T+M)**2)
-        value*=math.comb(T,(T+M)//2)
-        proba.append(value)
-    proba=np.array(proba)
-    proba/=np.sum(proba)
-    proba_list_canonical.append(proba)
-    
 #%% Log Stirling, that will be useful
 
 def Log_Stirling(N):
@@ -2356,6 +2348,147 @@ def Approx_Log_Comb(n,k):
 def Approx_Comb(n,k):
     return(np.exp(Approx_Log_Comb(n, k)))
 
+#%% Next step is to make the log computations
+
+# Which hopefully will work
+# But first a test with a completion bar 
+
+from tqdm import tqdm # OK GAME CHANGER HERE
+
+#Test to check if there's a simple way of checking 
+#When the transition appears
+
+proba_list_canonical=[]
+#N0,j=2**8, 1.030054796971118
+
+N0,j=2**11, 1.0042019092570047
+# Each vector has T components, check len(range(-10,10,2))
+a=N0//13
+b=N0//10
+
+for T in tqdm(range(a,b)):
+    proba=[]
+    for M in range(-T,T+1,2):
+        value=0
+        for k in range(0,N0-T+1):
+            value+=Approx_Comb(N0-T,k)*np.exp((j/(2*N0))*(2*k-N0+T+M)**2)
+        value*=Approx_Comb(T,(T+M)//2)
+        proba.append(value)
+    # proba=np.array(proba)
+    # proba/=np.sum(proba)
+    proba_list_canonical.append(proba)
+    
+L=len(proba_list_canonical)
+peaks_canonical=np.zeros(L)
+for T in range(a,b):
+    peaks_canonical[T-a]=np.linspace(-(T+1),T+1,T+2)[np.argmax(proba_list_canonical[T-a][0:(T+1)//2 +1])] +(T+1)%2
+    
+Back_and_Forth(peaks_canonical) 
+
+plt.plot(np.arange(a,b)/N0, np.abs(peaks_canonical)) 
+    
+#%% Log computation of the position of the separation
+# The trick used here is to use the long int expression and then use
+# math.log() that for some reason allows us to make those computations
+N0,j = 2**10, 1.0082210117186894
+#N0,j = 2**11, 1.0042019092570047
+#N0,j = 2**8, 1.030054796971118
+# Each vector has T components, check len(range(-10,10,2))
+a=0
+b=N0//8
+L=b-a
+peaks_canonical=[]
+
+for T in tqdm(range(a,b)):
+    proba=[]
+    for M in range(-T,1,2): #We cut everything in half to save computation time
+        value=0
+        for k in range(0,N0-T+1):
+            value+=math.comb(N0-T,k)*math.exp((2*(j/N0)*k*(k-N0+T+M))) #I have no idea how to make this fast
+             #DO NOT MAKE int(exp) it breaks everything
+        log_value=math.log(value)
+        log_value+=math.log(math.comb(T,(T+M)//2)) + j/(2*N0)*(T+M-N0)**2
+        proba.append(log_value)
+    location=np.linspace(-(T+1),T+1,T+2)[np.argmax(proba)] +(T+1)%2
+   #print((T/N0,location))
+    peaks_canonical.append(location)
+      
+Back_and_Forth(peaks_canonical) 
+plt.plot(np.arange(a,b)/N0, np.abs(peaks_canonical)) 
 
 #%%
 
+list_j=[(2**5, 1.188398582218761),
+(2**6, 1.1026833438841046), 
+(2**7, 1.0559249177813748), 
+(2**8, 1.030054796971118), 
+(2**9, 1.0158592327449962)]#, # To much computation
+# (2**10, 1.0082210117186894), 
+# (2**11, 1.0042019092570047), 
+# (2**12, 1.0021272512222559), 
+# (2**13, 1.0010707528735596)]
+
+def Fake_j(N0):
+    """
+    Returns the fitted value of j for a given N0
+    """
+    return(1+5.1/(N0**(0.93)))
+
+list_fake_j=[(2**5, Fake_j(2**5)),
+(2**6, Fake_j(2**6)), 
+(2**7, Fake_j(2**7)), 
+(2**8, Fake_j(2**8)), 
+(2**9, Fake_j(2**9))]
+
+
+#%%
+
+for (N0,j) in list_j:
+    proba_list_canonical=[]
+    for T in tqdm(range(1,N0+1)):
+        proba=[]
+        for M in range(-T,T+1,2):
+            value=0
+            for k in range(0,N0-T+1):
+                value+=math.comb(N0-T,k)*np.exp((j/(2*N0))*(2*k-N0+T+M)**2)
+            value*=math.comb(T,(T+M)//2)
+            proba.append(value)
+        proba=np.array(proba)
+        proba/=np.sum(proba)
+        proba_list_canonical.append(proba)
+        
+    peaks_canonical=np.zeros(N0)
+    for T in range(N0):
+        peaks_canonical[T]=np.linspace(-(T+1),T+1,T+2)[np.argmax(proba_list_canonical[T][0:(T+1)//2 +1])] +(T+1)%2
+   
+    Back_and_Forth(peaks_canonical) 
+
+    plt.plot(np.linspace(0,1,N0), np.abs(peaks_canonical)/N0) 
+plt.title('With real values')  
+plt.show()
+
+#%% Making the N0 inf test for the unimodal / bimodal transition
+
+#N=10**15 # Or any other number
+list_of_max=[]
+for N in tqdm(range(100,200001,100)):
+    # I don't think we need to compute all the values
+    # like 200 should be enough
+    
+    final_logP=[]
+    for M in range(-N,N+1,N//100):
+        final_logP.append(Approx_Log_Comb(N, (N+M)//2) +Fake_j(N)/(2*N)*(M**2))
+        
+    # final_logP=np.array(final_logP)
+    # final_logP/=np.sum(final_logP)
+        
+    #plt.plot(np.arange(-N,N+1,N//200),final_logP,'b')
+    #plt.plot(np.linspace(-1,1,401),final_logP)
+    list_of_max.append(np.abs(np.argmax(final_logP)-100))
+    
+list_of_max=np.array(list_of_max)
+plt.plot(np.arange(100,200001,100),list_of_max/100)
+plt.xlabel('Value of $N_0$')
+plt.ylabel('Location of the maximum probability $T^*/N_0$')
+plt.savefig('max_loc_P(N).pdf')
+plt.show()
