@@ -218,7 +218,10 @@ for T in range(N0):
         
                 
 
-#%% Normal PQ until T0
+#%% Recycling Quenching, with Niter steps
+
+# First we generate a normal PQ distribution from (0,0)
+
 #random.seed(100) #setting the same seed for the two processes will allow to make the same first trajectory
 M_list=[] #list of all the magnetisation
 spin_list=[random.choice([-1,1])] #picking the first spin
@@ -229,11 +232,14 @@ for T in range(1,T0): #goes form 1 to T0-1
         spin_list.append(1)
     else :
         spin_list.append(-1)
+        
+# Having a list of spin indexed by their "age" is a quite good idea
     
 M_list.append(np.sum(spin_list)) #Keep in memory the value of the magnetisation
 
-#From now, M will be either a odd or even integer depending on T0
-#Forgetting process
+# From now, M will be either a odd or even integer depending on T0
+
+# Forgetting process
 
 for k in range(N_iter):
     
@@ -247,7 +253,7 @@ for k in range(N_iter):
         spin_list.append(-1)
     M_list.append(np.sum(spin_list))
     
-#%%Writting a file for Ken    
+#%% Writting a file for Ken    
     
 f=open("M_list_oldest_spin_removal.txt",'w')
 for i in range(len(M_list)):
@@ -2405,7 +2411,7 @@ for T in tqdm(range(a,b)):
         value=0
         for k in range(0,N0-T+1):
             value+=math.comb(N0-T,k)*math.exp((2*(j/N0)*k*(k-N0+T+M))) #I have no idea how to make this fast
-             #DO NOT MAKE int(exp) it breaks everything
+             # DO NOT MAKE int(exp) it breaks everything
         log_value=math.log(value)
         log_value+=math.log(math.comb(T,(T+M)//2)) + j/(2*N0)*(T+M-N0)**2
         proba.append(log_value)
@@ -2414,7 +2420,10 @@ for T in tqdm(range(a,b)):
     peaks_canonical.append(location)
       
 Back_and_Forth(peaks_canonical) 
-plt.plot(np.arange(a,b)/N0, np.abs(peaks_canonical)) 
+plt.plot(np.arange(a,b)/N0, np.abs(peaks_canonical))
+
+# Conclusion, there is no limit ratio
+
 
 #%%
 
@@ -2490,5 +2499,61 @@ list_of_max=np.array(list_of_max)
 plt.plot(np.arange(100,200001,100),list_of_max/100)
 plt.xlabel('Value of $N_0$')
 plt.ylabel('Location of the maximum probability $T^*/N_0$')
-plt.savefig('max_loc_P(N).pdf')
+#plt.savefig('max_loc_P(N).pdf')
 plt.show()
+
+
+#%% Checking where is the maximum for different j
+#For different N0s
+
+def Generate_Final_Distribution(N0,j): # You might need to specify the coupling 
+    """
+    Returns a list of size N0+1 with the canonical probabilities
+    with the given parameters
+    """
+    import warnings
+
+    if N0>1000 : 
+        warnings.warn('N0 is too large, will retrun the log distribution.\
+        You will loose the normalisation constant')
+        list_M=np.arange(-N0,N0+1,2)
+        Pth=np.zeros(N0+1)
+        for i in range(N0+1):
+            M=np.int(list_M[i])
+            prout=math.comb(N0,(M+N0)//2)
+            logP=(-(j/N0)*(N0-(M**2))/2) + math.log(prout)
+            Pth[i]=logP
+        return(Pth)
+    else :
+        list_M=np.arange(-N0,N0+1,2)
+        Pth=np.zeros(N0+1)
+        for i in range(N0+1):
+            M=np.int(list_M[i])
+            prout=math.comb(N0,(M+N0)//2)
+            P=np.exp(-(j/N0)*(N0-(M**2))/2) *prout
+            Pth[i]=P
+        Pth/=np.sum(Pth)
+        return(Pth)
+    
+#%% Example of use :
+    
+# Select and run one of the following 
+for i in np.linspace(0.5,1.5,20) : 
+    plt.plot(np.arange(-256,256+1,2),Generate_Final_Distribution(256,i),'-.',label='j= %f' %i)
+    plt.legend()
+    plt.show()
+
+for i in range(20,500,20) : 
+    plt.plot(np.arange(-i,i+1,2),Generate_Final_Distribution(i))
+    plt.show()
+
+#%%
+
+
+
+
+
+
+
+
+    
